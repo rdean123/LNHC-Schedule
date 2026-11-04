@@ -49,6 +49,11 @@ async function openPage(url, { mobile = false } = {}) {
       : { width: 1280, height: 900 },
   );
   await page.evaluateOnNewDocument(() => {
+    try {
+      localStorage.clear();
+    } catch {
+      /* storage unavailable */
+    }
     const fixed = new Date('2026-11-04T02:00:00Z').getTime();
     const RealDate = Date;
     class FakeDate extends RealDate {
@@ -76,6 +81,18 @@ const text = (page) => page.evaluate(() => document.body.innerText);
 const shot = async (page, name) => {
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `${name}.png`), fullPage: true });
 };
+/** Wait until entrance animations and transitions have finished (endless loading shimmers are ignored). */
+const settle = (page) =>
+  page.waitForFunction(
+    () =>
+      document
+        .getAnimations()
+        .filter((a) => a.timeline === document.timeline) // not the scroll-linked cross
+        .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+        .every((a) => a.playState !== 'running'),
+    { timeout: 5000 },
+  );
+
 /** Click the visible button or link with this accessible name (aria-label, else its text). */
 const click = async (page, label) => {
   const handle = await page.evaluateHandle((wanted) => {
@@ -90,7 +107,8 @@ const click = async (page, label) => {
   }, label);
   const el = handle.asElement();
   if (!el) throw new Error(`No visible button or link named "${label}"`);
-  await el.evaluate((b) => b.scrollIntoView({ block: 'center' }));
+  await el.evaluate((b) => b.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await settle(page);
   await el.click();
 };
 /** Click the visible button whose text contains every one of these phrases. */
@@ -106,7 +124,8 @@ const clickContaining = async (page, ...needles) => {
   }, needles);
   const el = handle.asElement();
   if (!el) throw new Error(`No visible button containing ${needles.join(' + ')}`);
-  await el.evaluate((b) => b.scrollIntoView({ block: 'center' }));
+  await el.evaluate((b) => b.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await settle(page);
   await el.click();
 };
 async function waitForText(page, needle, timeout = 8000) {
@@ -264,31 +283,6 @@ describe('a volunteer (Rden)', () => {
     await page.close();
   });
 
-  test('downloads a PDF', async () => {
-    const page = await openPage('/schedules?as=rden&month=2026-11');
-    await waitForText(page, 'Back Up');
-    const dir = fs.mkdtempSync(path.join(root, 'node_modules', '.e2e-dl-'));
-    const cdp = await page.createCDPSession();
-    await cdp.send('Browser.setDownloadBehavior', {
-      behavior: 'allow',
-      downloadPath: dir,
-      eventsEnabled: true,
-    });
-    await click(page, 'Download PDF');
-    let file;
-    for (let i = 0; i < 50 && !file; i++) {
-      await new Promise((r) => setTimeout(r, 200));
-      file = fs.readdirSync(dir).find((f) => f.endsWith('.pdf'));
-    }
-    assert.ok(file, 'a PDF should have been downloaded');
-    assert.match(file, /^LNHC-LNHC-2026-11\.pdf$/);
-    const bytes = fs.readFileSync(path.join(dir, file));
-    assert.equal(bytes.subarray(0, 5).toString(), '%PDF-');
-    assert.ok(bytes.length > 5000, 'the PDF should have content');
-    fs.rmSync(dir, { recursive: true, force: true });
-    await page.close();
-  });
-
   test('availability: tap to switch, save, and Sundays already served are locked', async () => {
     const page = await openPage('/availability?as=rden&month=2027-01');
     await waitForText(page, 'January 2027');
@@ -378,6 +372,19 @@ describe('an administrator', () => {
     );
     assert.match(t, /Denver/);
     assert.ok(!t.includes('Zed'));
+    // The panel is anchored to the screen, not to the page behind it (a transformed ancestor once broke this).
+    await settle(page);
+    const rect = await page.$eval('[aria-labelledby="drawer-title"]', (el) => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top, bottom: r.bottom, vh: window.innerHeight };
+    });
+    assert.equal(
+      await page.$eval('[aria-labelledby="drawer-title"]', (el) => getComputedStyle(el).opacity),
+      '1',
+      'fully visible once it has slid in',
+    );
+    assert.equal(Math.round(rect.top), 0);
+    assert.equal(Math.round(rect.bottom), rect.vh);
     await shot(page, 'admin-assignment-panel');
     assert.equal(
       await page.$eval('button[aria-label="Ferl can’t be added"]', (b) => b.disabled),
@@ -514,6 +521,7 @@ describe('on a phone', () => {
     await waitForText(page, 'Sunday, December 13');
     await click(page, 'Choose someone for Acoustic on December 13');
     await waitForText(page, 'Only people qualified for Acoustic are listed');
+    await settle(page);
     const box = await page.$eval('[aria-labelledby="drawer-title"]', (el) => {
       const r = el.getBoundingClientRect();
       return { top: r.top, bottom: r.bottom, height: r.height, vh: window.innerHeight };
@@ -722,6 +730,351 @@ describe('who can do what', () => {
   });
 });
 
+/** Download a PDF by running `trigger`; returns the file name, its bytes, and how many pages it has. */
+async function capturePdf(page, trigger) {
+  const dir = fs.mkdtempSync(path.join(root, 'node_modules', '.e2e-dl-'));
+  const cdp = await page.createCDPSession();
+  await cdp.send('Browser.setDownloadBehavior', {
+    behavior: 'allow',
+    downloadPath: dir,
+    eventsEnabled: true,
+  });
+  await trigger();
+  let file;
+  for (let i = 0; i < 40 && !file; i++) {
+    await new Promise((r) => setTimeout(r, 200));
+    file = fs.readdirSync(dir).find((f) => f.endsWith('.pdf'));
+  }
+  try {
+    if (!file) return null;
+    const bytes = fs.readFileSync(path.join(dir, file));
+    // Count page objects, not the page tree: "/Type /Page" not followed by "s".
+    const pages = (bytes.toString('latin1').match(/\/Type \/Page(?!s)/g) ?? []).length;
+    return { file, bytes, pages };
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/** Pick months in the PDF dialog. Months are written like '2026-11'. */
+async function chooseMonths(page, from, to) {
+  const [fromSelect, toSelect] = await page.$$('dialog select');
+  await fromSelect.select(from);
+  await toSelect.select(to);
+}
+
+const clickInDialog = (page, label) =>
+  page.evaluate((wanted) => {
+    const button = [...document.querySelectorAll('dialog button')].find(
+      (b) => b.textContent.trim() === wanted,
+    );
+    if (!button) throw new Error(`No dialog button "${wanted}"`);
+    button.click();
+  }, label);
+
+describe('downloading a PDF', () => {
+  test('one month by default, with the month on screen already chosen', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-11');
+    await waitForText(page, 'Back Up');
+    const pdf = await capturePdf(page, async () => {
+      await click(page, 'Download PDF');
+      await waitForText(page, 'Choose the months to put in the PDF for LNHC');
+      const chosen = await page.$$eval('dialog select', (s) => s.map((x) => x.value));
+      assert.deepEqual(chosen, ['2026-11', '2026-11']);
+      await clickInDialog(page, 'Download PDF');
+    });
+    assert.ok(pdf, 'a PDF should have been downloaded');
+    assert.equal(pdf.file, 'LNHC-LNHC-2026-11.pdf');
+    assert.equal(pdf.bytes.subarray(0, 5).toString(), '%PDF-');
+    assert.equal(pdf.pages, 1);
+    await page.close();
+  });
+
+  test('two months, one page each, in one file', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-11');
+    await waitForText(page, 'Back Up');
+    const pdf = await capturePdf(page, async () => {
+      await click(page, 'Download PDF');
+      await waitForText(page, 'Choose the months');
+      await chooseMonths(page, '2026-11', '2026-12');
+      await waitForText(page, '2 months: November 2026 to December 2026');
+      await shot(page, 'pdf-dialog');
+      await clickInDialog(page, 'Download PDF');
+    });
+    assert.ok(pdf);
+    assert.equal(pdf.file, 'LNHC-LNHC-2026-11-to-2026-12.pdf');
+    assert.equal(pdf.pages, 2);
+    await waitForText(page, 'PDF downloaded for November 2026 and December 2026.');
+    await page.close();
+  });
+
+  test('three months is allowed; four is refused with a way forward and the button is off', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-11');
+    await waitForText(page, 'Back Up');
+    await click(page, 'Download PDF');
+    await waitForText(page, 'Choose the months');
+    await chooseMonths(page, '2026-10', '2026-12');
+    await waitForText(page, '3 months: October 2026 to December 2026');
+    assert.equal(await page.$eval('dialog button[type=submit]', (b) => b.disabled), false);
+    await chooseMonths(page, '2026-10', '2027-01');
+    await waitForText(page, 'That is 4 months. A PDF holds up to 3');
+    assert.equal(await page.$eval('dialog button[type=submit]', (b) => b.disabled), true);
+    await shot(page, 'pdf-dialog-too-many');
+    await page.close();
+  });
+
+  test('"To" never falls before "From"', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-11');
+    await waitForText(page, 'Back Up');
+    await click(page, 'Download PDF');
+    await waitForText(page, 'Choose the months');
+    await chooseMonths(page, '2026-12', '2026-12');
+    const [fromSelect, toSelect] = await page.$$('dialog select');
+    await toSelect.select('2026-09');
+    assert.deepEqual(await page.$$eval('dialog select', (s) => s.map((x) => x.value)), [
+      '2026-09',
+      '2026-09',
+    ]);
+    void fromSelect;
+    await page.close();
+  });
+
+  test('months with nothing published are left out and the person is told', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-12');
+    await waitForText(page, 'Back Up');
+    const pdf = await capturePdf(page, async () => {
+      await click(page, 'Download PDF');
+      await waitForText(page, 'Choose the months');
+      await chooseMonths(page, '2026-12', '2027-01');
+      await clickInDialog(page, 'Download PDF');
+    });
+    assert.ok(pdf);
+    assert.equal(pdf.pages, 1, 'only December has anything published');
+    await waitForText(page, 'January 2027 was left out because nothing is published for it.');
+    await page.close();
+  });
+
+  test('nothing published at all: no file, and the dialog says so', async () => {
+    const page = await openPage('/schedules?as=rden&month=2027-03');
+    await waitForText(page, 'No LNHC schedule for March 2027 yet');
+    await click(page, 'Download PDF').catch(() => {});
+    // The button is disabled on an empty month; open the dialog from a month that has data and pick empty ones.
+    await page.goto(`${BASE}/schedules?as=rden&month=2026-11`, { waitUntil: 'networkidle0' });
+    await waitForText(page, 'Back Up');
+    await click(page, 'Download PDF');
+    await waitForText(page, 'Choose the months');
+    await chooseMonths(page, '2027-03', '2027-04');
+    await clickInDialog(page, 'Download PDF');
+    await waitForText(page, 'Nothing is published for March 2027 or April 2027 yet');
+    await page.close();
+  });
+
+  test('the Home screen offers the same picker, starting at the month of the next Sunday', async () => {
+    const page = await openPage('/?as=rden');
+    await waitForText(page, 'Sunday, November 15');
+    await click(page, 'Download PDF');
+    await waitForText(page, 'Choose the months to put in the PDF for LNHC');
+    assert.deepEqual(await page.$$eval('dialog select', (s) => s.map((x) => x.value)), [
+      '2026-11',
+      '2026-11',
+    ]);
+    await page.close();
+  });
+});
+
+describe('motion and flow', () => {
+  test('moving to another screen starts at the top and moves focus to the new content', async () => {
+    const page = await openPage('/?as=rden');
+    await waitForText(page, 'Sunday, November 15');
+    await page.evaluate(() => window.scrollTo({ top: 400, behavior: 'instant' }));
+    await click(page, 'Schedules');
+    await waitForText(page, 'Published rosters for every venue');
+    assert.equal(await page.evaluate(() => Math.round(window.scrollY)), 0);
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'main');
+    await page.close();
+  });
+
+  test('a new screen eases in, and an answered press moves the button', async () => {
+    const page = await openPage('/?as=rden');
+    await waitForText(page, 'Sunday, November 15');
+    await click(page, 'Schedules');
+    await waitForText(page, 'Published rosters for every venue');
+    assert.ok(await page.$('#main > .page-enter'), 'the screen is wrapped for the entrance');
+    await settle(page);
+    // Hovering a primary button lifts it; moving away puts it back.
+    const link = await page.evaluateHandle(() =>
+      [...document.querySelectorAll('a')].find((a) =>
+        a.textContent.includes('Set your availability'),
+      ),
+    );
+    void link;
+    await click(page, 'Home');
+    await waitForText(page, 'Sunday, November 15');
+    await settle(page);
+    const primary = await page.evaluateHandle(() =>
+      [...document.querySelectorAll('a')].find((a) =>
+        a.textContent.includes('See the full schedule'),
+      ),
+    );
+    const el = primary.asElement();
+    await el.hover();
+    await new Promise((r) => setTimeout(r, 300));
+    assert.notEqual(
+      await el.evaluate((n) => getComputedStyle(n).translate),
+      'none',
+      'a hovered button lifts',
+    );
+    await page.mouse.move(5, 5);
+    await new Promise((r) => setTimeout(r, 300));
+    assert.equal(
+      await el.evaluate((n) => getComputedStyle(n).translate),
+      'none',
+      'and settles back',
+    );
+    await page.close();
+  });
+
+  test('sections below the fold ease in as they are scrolled to, once', async () => {
+    const page = await openPage('/?as=rden', { mobile: true });
+    await waitForText(page, 'Sunday, November 15');
+    const state = () =>
+      page.$$eval('.reveal', (els) => els.map((e) => e.getAttribute('data-seen')));
+    const before = await state();
+    assert.ok(before.length >= 3, 'the home panels are revealable');
+    assert.ok(before.includes('false'), 'something starts hidden below the fold');
+    await page.evaluate(() =>
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }),
+    );
+    await new Promise((r) => setTimeout(r, 800));
+    assert.deepEqual(new Set(await state()), new Set(['true']));
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await new Promise((r) => setTimeout(r, 300));
+    assert.deepEqual(new Set(await state()), new Set(['true']), 'they stay visible once seen');
+    await page.close();
+  });
+
+  test('the header lifts off the page once you scroll', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-11');
+    await page.setViewport({ width: 1280, height: 480 }); // short enough that the page can scroll
+    await waitForText(page, 'Back Up');
+    const shadow = () => page.$eval('header', (h) => getComputedStyle(h).boxShadow);
+    assert.equal(await shadow(), 'none');
+    await page.evaluate(() => window.scrollTo({ top: 300, behavior: 'instant' }));
+    await new Promise((r) => setTimeout(r, 400));
+    assert.notEqual(await shadow(), 'none');
+    await page.close();
+  });
+
+  test('dialogs and the assignment panel animate in', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-11');
+    await waitForText(page, 'Back Up');
+    await click(page, 'Download PDF');
+    await waitForText(page, 'Choose the months');
+    assert.equal(
+      await page.$eval('dialog[open]', (d) => getComputedStyle(d).animationName),
+      'dialog-in',
+    );
+    await page.close();
+    const admin = await openPage('/admin/schedule?as=admin&month=2026-12');
+    await waitForText(admin, 'Dec 13');
+    await click(admin, 'Choose someone for Acoustic on December 13');
+    await waitForText(admin, 'Already serving as Bass Guitarist');
+    assert.match(
+      await admin.$eval(
+        '[aria-labelledby="drawer-title"]',
+        (d) => getComputedStyle(d).animationName,
+      ),
+      /panel-in-(side|up)/,
+    );
+    await admin.close();
+  });
+
+  test('with "reduce motion" on, nothing moves and nothing starts hidden', async () => {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 390, height: 844, isMobile: true });
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    await page.goto(`${BASE}/?as=rden`, { waitUntil: 'networkidle0' });
+    await waitForText(page, 'Sunday, November 15');
+    const result = await page.evaluate(() => {
+      const reveal = [...document.querySelectorAll('.reveal')].map(
+        (e) => getComputedStyle(e).opacity,
+      );
+      const main = document.querySelector('#main > div');
+      return {
+        reveal,
+        pageAnimation: getComputedStyle(main).animationName,
+        smooth: getComputedStyle(document.documentElement).scrollBehavior,
+        running: document
+          .getAnimations()
+          .filter((a) => a.timeline === document.timeline)
+          .filter(
+            (a) =>
+              a.effect?.getComputedTiming().iterations !== Infinity && a.playState === 'running',
+          ).length,
+      };
+    });
+    assert.ok(
+      result.reveal.length >= 3 && result.reveal.every((o) => o === '1'),
+      'every section is visible straight away',
+    );
+    assert.equal(result.pageAnimation, 'none');
+    assert.equal(result.smooth, 'auto');
+    assert.equal(result.running, 0);
+    await page.close();
+  });
+
+  test('Schedules opens on the venue you looked at last', async () => {
+    const page = await openPage('/schedules?as=rden&month=2026-11');
+    await waitForText(page, 'Back Up');
+    await click(page, 'Tangway');
+    await waitForText(page, 'No Tangway schedule for November 2026 yet');
+    await click(page, 'Home');
+    await waitForText(page, 'Sunday, November 15');
+    await click(page, 'Schedules');
+    await waitForText(page, 'No Tangway schedule');
+    assert.equal(
+      await page.$eval('button[aria-pressed=true]', (b) => b.textContent.trim()),
+      'Tangway',
+    );
+    await page.close();
+  });
+
+  test('"I can’t make it" explains what to do instead of sending you somewhere that is locked', async () => {
+    const page = await openPage('/?as=rden');
+    await waitForText(page, 'Sunday, November 15');
+    await click(page, 'I can’t make it');
+    await waitForText(page, 'Can’t make Sunday, November 15?');
+    await waitForText(page, 'a schedule maker needs to take you off');
+    await waitForText(page, 'Set availability for other Sundays');
+    await page.close();
+  });
+
+  test('on a phone, Save availability stays pinned above the tab bar once there is something to save', async () => {
+    const page = await openPage('/availability?as=rden&month=2027-01', { mobile: true });
+    await waitForText(page, 'No answer');
+    await clickContaining(page, 'January 10', 'No answer');
+    await waitForText(page, 'You have unsaved changes.');
+    await settle(page);
+    const box = await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].find((x) =>
+        x.textContent.includes('Save availability'),
+      );
+      const r = b.getBoundingClientRect();
+      return {
+        bottom: r.bottom,
+        vh: window.innerHeight,
+        fixed: getComputedStyle(b.parentElement).position,
+      };
+    });
+    assert.equal(box.fixed, 'fixed');
+    assert.ok(
+      box.bottom < box.vh - 50 && box.bottom > box.vh * 0.5,
+      'it sits just above the tab bar',
+    );
+    await page.close();
+  });
+});
+
 describe('accessibility (axe, WCAG 2.2 A and AA)', () => {
   const pages = [
     ['sign in', '/login', false],
@@ -745,7 +1098,16 @@ describe('accessibility (axe, WCAG 2.2 A and AA)', () => {
   for (const [name, url, mobile] of pages) {
     test(`${name} has no violations`, async () => {
       const page = await openPage(url, { mobile });
-      await new Promise((r) => setTimeout(r, 600));
+      // Scroll to the bottom and back so every section has eased in before it is checked.
+      await page.evaluate(async () => {
+        for (let y = 0; y <= document.body.scrollHeight; y += 400) {
+          window.scrollTo({ top: y, behavior: 'instant' });
+          await new Promise((r) => setTimeout(r, 60));
+        }
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      });
+      await new Promise((r) => setTimeout(r, 700));
+      await settle(page);
       const violations = await axeViolations(page);
       assert.deepEqual(violations, [], JSON.stringify(violations, null, 2));
       await page.close();

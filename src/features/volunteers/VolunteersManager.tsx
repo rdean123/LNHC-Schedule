@@ -362,13 +362,13 @@ function VolunteerPanel({
                 type="button"
                 aria-pressed={on}
                 onClick={() => toggle(p.id)}
-                className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-[0.9375rem] font-semibold ${
+                className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-[0.9375rem] font-semibold transition-[background-color,border-color,color,transform] duration-150 motion-safe:active:scale-95 ${
                   on
                     ? 'border-brand bg-wash text-brand-hover'
                     : 'border-line-strong bg-surface text-ink hover:bg-wash'
                 }`}
               >
-                {on && <Check className="size-4" aria-hidden="true" />}
+                {on && <Check className="pop size-4" aria-hidden="true" />}
                 {p.name}
               </button>
             );

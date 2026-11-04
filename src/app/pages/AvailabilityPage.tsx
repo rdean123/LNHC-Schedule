@@ -217,18 +217,18 @@ export function AvailabilityPage() {
                       type="button"
                       onClick={() => toggle(date)}
                       aria-pressed={state === 'yes' ? true : state === 'away' ? false : undefined}
-                      className={`grid min-h-16 content-center justify-items-center rounded-control border font-bold ${tone}`}
+                      className={`grid min-h-16 content-center justify-items-center rounded-control border font-bold transition-[transform,background-color,border-color,color] duration-150 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95 ${tone}`}
                     >
                       <span className="sr-only">{formatLongDate(date)}. </span>
                       <span>{day}</span>
                       {state === 'yes' && (
-                        <span className="flex items-center gap-0.5 text-[0.6875rem] font-semibold">
+                        <span className="pop flex items-center gap-0.5 text-[0.6875rem] font-semibold">
                           <Check className="size-3.5" aria-hidden="true" />
                           <span className="max-sm:sr-only">Can serve</span>
                         </span>
                       )}
                       {state === 'away' && (
-                        <span className="flex items-center gap-0.5 text-[0.6875rem] font-semibold">
+                        <span className="pop flex items-center gap-0.5 text-[0.6875rem] font-semibold">
                           <Ban className="size-3.5" aria-hidden="true" />
                           <span className="max-sm:sr-only">Away</span>
                         </span>
@@ -269,7 +269,14 @@ export function AvailabilityPage() {
                 </div>
               )}
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              {/* With changes pending, Save stays pinned above the tab bar on a phone. */}
+              <div
+                className={`mt-6 flex flex-wrap items-center gap-3 ${
+                  dirty
+                    ? 'max-md:fixed max-md:inset-x-0 max-md:bottom-14 max-md:z-20 max-md:mt-0 max-md:border-t max-md:border-line max-md:bg-surface max-md:p-3 max-md:shadow-pop'
+                    : ''
+                }`}
+              >
                 <Button
                   variant="primary"
                   onClick={() => void save()}

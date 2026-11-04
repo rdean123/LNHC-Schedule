@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { buttonClasses } from '../../../components/ui/buttonStyles';
 import { Chip } from '../../../components/ui/Chip';
 import { PageHead, Panel, PanelHead } from '../../../components/ui/Parts';
+import { Reveal } from '../../../components/ui/Reveal';
 import { ErrorBlock, LoadingBlock } from '../../../components/ui/States';
 import { AttentionPanel } from '../../../features/administration/AttentionPanel';
 import { loadOverview } from '../../../features/administration/overview';
@@ -38,60 +39,66 @@ export function AdminDashboardPage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
-          <AttentionPanel items={items} id="attention" />
+          <Reveal>
+            <AttentionPanel items={items} id="attention" />
+          </Reveal>
 
-          <Panel aria-labelledby="next-three">
-            <PanelHead id="next-three" title="Next three Sundays">
-              <Link to={paths.scheduleEditor}>Open schedules</Link>
-            </PanelHead>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left">
-                <caption className="sr-only">
-                  Roster status for the next three Sundays, by venue
-                </caption>
-                <thead>
-                  <tr className="bg-wash text-sm text-deep">
-                    <th scope="col" className="px-4 py-3">
-                      Sunday
-                    </th>
-                    {venues.map((v) => (
-                      <th key={v.id} scope="col" className="px-4 py-3">
-                        {v.name}
+          <Reveal delay={80}>
+            <Panel aria-labelledby="next-three">
+              <PanelHead id="next-three" title="Next three Sundays">
+                <Link to={paths.scheduleEditor}>Open schedules</Link>
+              </PanelHead>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-left">
+                  <caption className="sr-only">
+                    Roster status for the next three Sundays, by venue
+                  </caption>
+                  <thead>
+                    <tr className="bg-wash text-sm text-deep">
+                      <th scope="col" className="px-4 py-3">
+                        Sunday
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {sundays.map((d) => (
-                    <tr key={d} className="border-t border-line">
-                      <th
-                        scope="row"
-                        className="whitespace-nowrap px-4 py-3.5 font-display text-lg font-semibold text-deep"
-                      >
-                        {formatMonthDay(d).replace(/^\w+ /, (m) => m.slice(0, 3) + ' ')}
-                      </th>
-                      {venues.map((v) => {
-                        const s = upcoming.find((x) => x.venue_id === v.id && x.service_date === d);
-                        return (
-                          <td key={v.id} className="px-4 py-3.5">
-                            <Link to={link(v.id, d.slice(0, 7))} className="no-underline">
-                              {s?.status === 'published' ? (
-                                <Chip tone="published">Published</Chip>
-                              ) : s ? (
-                                <Chip tone="draft">Draft</Chip>
-                              ) : (
-                                <Chip tone="attention">No roster</Chip>
-                              )}
-                            </Link>
-                          </td>
-                        );
-                      })}
+                      {venues.map((v) => (
+                        <th key={v.id} scope="col" className="px-4 py-3">
+                          {v.name}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Panel>
+                  </thead>
+                  <tbody>
+                    {sundays.map((d) => (
+                      <tr key={d} className="border-t border-line">
+                        <th
+                          scope="row"
+                          className="whitespace-nowrap px-4 py-3.5 font-display text-lg font-semibold text-deep"
+                        >
+                          {formatMonthDay(d).replace(/^\w+ /, (m) => m.slice(0, 3) + ' ')}
+                        </th>
+                        {venues.map((v) => {
+                          const s = upcoming.find(
+                            (x) => x.venue_id === v.id && x.service_date === d,
+                          );
+                          return (
+                            <td key={v.id} className="px-4 py-3.5">
+                              <Link to={link(v.id, d.slice(0, 7))} className="no-underline">
+                                {s?.status === 'published' ? (
+                                  <Chip tone="published">Published</Chip>
+                                ) : s ? (
+                                  <Chip tone="draft">Draft</Chip>
+                                ) : (
+                                  <Chip tone="attention">No roster</Chip>
+                                )}
+                              </Link>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+          </Reveal>
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6">

@@ -1,5 +1,6 @@
 import { Calendar, History, LayoutDashboard, LogOut, Megaphone, Menu, Users } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useScrolled } from '../../hooks/useScrolled';
 import { useSignedIn } from '../../app/auth';
 import { Avatar } from '../ui/Parts';
 import { Brand, DemoBanner } from './Brand';
@@ -21,6 +22,8 @@ const tabs = [
 
 export function AdminLayout() {
   const { email, logOut } = useSignedIn();
+  const { pathname } = useLocation();
+  const scrolled = useScrolled();
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[15.5rem_1fr]">
@@ -40,7 +43,7 @@ export function AdminLayout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex min-h-11 items-center gap-3 rounded-control px-3 font-semibold no-underline ${
+                `flex min-h-11 items-center gap-3 rounded-control px-3 font-semibold no-underline transition-colors duration-150 ${
                   isActive ? 'bg-mist text-deep' : 'text-muted hover:bg-wash hover:text-deep'
                 }`
               }
@@ -68,11 +71,21 @@ export function AdminLayout() {
 
       <div className="min-w-0">
         <DemoBanner />
-        <header className="flex min-h-14 items-center border-b border-line bg-surface px-4 md:hidden print:hidden">
+        <header
+          className={`sticky top-0 z-20 flex min-h-14 items-center border-b border-line bg-surface px-4 transition-shadow duration-200 md:hidden print:hidden ${
+            scrolled ? 'shadow-[0_10px_24px_-16px_rgb(26_90_158/0.5)]' : ''
+          }`}
+        >
           <Brand to="/admin" subtitle="Administrator" className="text-deep" />
         </header>
-        <main id="main" className="mx-auto max-w-[78rem] px-4 pb-28 pt-6 md:px-8 md:pb-16 md:pt-8">
-          <Outlet />
+        <main
+          id="main"
+          tabIndex={-1}
+          className="mx-auto max-w-[78rem] px-4 pb-28 pt-6 outline-none md:px-8 md:pb-16 md:pt-8"
+        >
+          <div key={pathname} className="page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
 

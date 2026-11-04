@@ -93,3 +93,15 @@ export function nextSundays(from: string, count: number): string[] {
   while (parseIso(d).getUTCDay() !== 0) d = addDays(d, 1);
   return Array.from({ length: count }, (_, i) => addDays(d, i * 7));
 }
+
+/** Every month from `from` to `to` inclusive, as 'YYYY-MM' (empty when `to` is before `from`). */
+export function monthsBetween(from: string, to: string): string[] {
+  const months: string[] = [];
+  for (let m = from; m <= to && months.length < 60; m = shiftMonth(m, 1)) months.push(m);
+  return months;
+}
+
+/** A run of months around `center` to choose from, as 'YYYY-MM'. */
+export function monthOptions(center: string, before = 12, after = 12): string[] {
+  return monthsBetween(shiftMonth(center, -before), shiftMonth(center, after));
+}

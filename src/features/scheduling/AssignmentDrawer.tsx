@@ -1,5 +1,6 @@
 import { Ban, Check, Info, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Avatar } from '../../components/ui/Parts';
@@ -85,13 +86,14 @@ export function AssignmentDrawer({
 
   const firstAssignable = data?.suggestions.findIndex((s) => s.can_assign) ?? -1;
 
-  return (
+  // Rendered at the top of the page so no animated or transformed ancestor can move it.
+  return createPortal(
     <aside
       ref={panelRef}
       role="dialog"
       aria-labelledby="drawer-title"
       tabIndex={-1}
-      className="fixed inset-x-2 bottom-16 z-40 flex max-h-[62vh] flex-col overflow-hidden rounded-panel border border-line bg-surface shadow-pop outline-none md:inset-x-auto md:inset-y-0 md:bottom-0 md:right-0 md:max-h-none md:w-[24rem] md:rounded-none md:border-y-0 md:border-r-0 print:hidden"
+      className="panel-in fixed inset-x-2 bottom-16 z-40 flex max-h-[62vh] flex-col overflow-hidden rounded-panel border border-line bg-surface shadow-pop outline-none md:inset-x-auto md:inset-y-0 md:bottom-0 md:right-0 md:max-h-none md:w-[24rem] md:rounded-none md:border-y-0 md:border-r-0 print:hidden"
     >
       <header className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
         <div>
@@ -206,6 +208,7 @@ export function AssignmentDrawer({
         Only people qualified for {positionLabel} are listed, longest-rested first.{' '}
         <Link to={staffPaths(role).people}>Change qualifications</Link>
       </footer>
-    </aside>
+    </aside>,
+    document.body,
   );
 }

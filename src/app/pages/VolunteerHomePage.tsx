@@ -7,13 +7,14 @@ import { Chip } from '../../components/ui/Chip';
 import { CrossMotif } from '../../components/ui/CrossMotif';
 import { skyBackground } from '../../components/ui/skyBackground';
 import { Panel, PanelHead } from '../../components/ui/Parts';
+import { Reveal } from '../../components/ui/Reveal';
 import { ErrorBlock, LoadingBlock } from '../../components/ui/States';
-import { useToast } from '../../components/ui/toastContext';
 import { listAnnouncements } from '../../features/announcements/announcementService';
 import { getMyAvailability } from '../../features/availability/availabilityService';
 import { listVenuePositions } from '../../features/ministries/catalogService';
 import { listVenues } from '../../features/ministries/catalogService';
-import { exportMonthPdf } from '../../features/scheduling/exportMonth';
+import { DownloadPdfDialog } from '../../features/scheduling/DownloadPdfDialog';
+import { Dialog } from '../../components/ui/Dialog';
 import { listServices } from '../../features/scheduling/scheduleService';
 import { useAsync } from '../../hooks/useAsync';
 import {
@@ -39,8 +40,8 @@ type Serving = { date: string; venueId: string; venueName: string; row: RosterRo
 
 export function VolunteerHomePage() {
   const { volunteer, role } = useSignedIn();
-  const toast = useToast();
-  const [downloading, setDownloading] = useState(false);
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const [cantMakeIt, setCantMakeIt] = useState(false);
   const myId = volunteer?.id ?? null;
 
   const load = useCallback(async () => {
@@ -91,20 +92,6 @@ export function VolunteerHomePage() {
   const upcomingSundays = nextSundays(today, 5);
   const monthOfNext = next?.date.slice(0, 7);
 
-  async function download() {
-    if (!next) return;
-    setDownloading(true);
-    try {
-      await exportMonthPdf({ id: next.venueId, name: next.venueName }, next.date.slice(0, 7));
-    } catch {
-      toast.error(
-        'We couldn’t create the PDF. Open the schedule and use Print, then “Save as PDF”.',
-      );
-    } finally {
-      setDownloading(false);
-    }
-  }
-
   const others = next
     ? next.row.cells
         .map((c) => ({
@@ -118,7 +105,7 @@ export function VolunteerHomePage() {
     <div>
       <section
         aria-labelledby="next-heading"
-        className="relative overflow-hidden rounded-hero p-5 md:p-8"
+        className="hero-rise relative overflow-hidden rounded-hero p-5 md:p-8"
         style={skyBackground}
       >
         <CrossMotif className="right-10 top-7" />
@@ -160,20 +147,13 @@ export function VolunteerHomePage() {
                 <Calendar className="size-5" aria-hidden="true" />
                 See the full schedule
               </Link>
-              <Button
-                className="w-full sm:w-auto"
-                onClick={() => void download()}
-                busy={downloading}
-              >
+              <Button className="w-full sm:w-auto" onClick={() => setPdfOpen(true)}>
                 <Download className="size-5" aria-hidden="true" />
                 Download PDF
               </Button>
-              <Link
-                to={`/availability?month=${monthOfNext}`}
-                className={buttonClasses('secondary', 'md', 'w-full sm:w-auto')}
-              >
+              <Button className="w-full sm:w-auto" onClick={() => setCantMakeIt(true)}>
                 I can’t make it
-              </Link>
+              </Button>
             </div>
           </>
         ) : (
@@ -210,96 +190,134 @@ export function VolunteerHomePage() {
       {isStaff(role) && <StaffAttention />}
 
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Panel aria-labelledby="upcoming-heading">
-          <PanelHead id="upcoming-heading" title="Your upcoming Sundays">
-            <Link to="/schedules">All schedules</Link>
-          </PanelHead>
-          <ul className="m-0 list-none p-0">
-            {upcomingSundays.map((date) => {
-              const mine = serving.find((s) => s.date === date);
-              return (
-                <li
-                  key={date}
-                  className="grid grid-cols-[4.5rem_1fr] items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3.5 last:border-b-0 sm:grid-cols-[5.5rem_1fr_auto] md:px-6"
-                >
-                  <span className="font-display text-lg font-semibold text-deep">
-                    {formatShortDate(date)}
-                    <small className="block font-sans text-[0.8125rem] font-normal text-muted">
-                      Sunday
-                    </small>
-                  </span>
-                  {mine ? (
-                    <>
-                      <span>
-                        <strong>{myPositions(mine.row, myId).join(' and ')}</strong> ·{' '}
-                        {mine.venueName}
-                      </span>
-                      <span className="col-start-2 sm:col-start-auto">
-                        <Chip tone="published">Published</Chip>
-                      </span>
-                    </>
-                  ) : publishedDates.has(date) ? (
-                    <>
-                      <span className="text-muted">Not scheduled this Sunday</span>
-                      <span className="col-start-2 sm:col-start-auto">
-                        <Chip tone="draft" icon={false}>
-                          Free
-                        </Chip>
-                      </span>
-                    </>
-                  ) : (
-                    <span className="col-span-1 text-muted sm:col-span-2">
-                      No schedule published yet
+        <Reveal>
+          <Panel aria-labelledby="upcoming-heading">
+            <PanelHead id="upcoming-heading" title="Your upcoming Sundays">
+              <Link to="/schedules">All schedules</Link>
+            </PanelHead>
+            <ul className="m-0 list-none p-0">
+              {upcomingSundays.map((date) => {
+                const mine = serving.find((s) => s.date === date);
+                return (
+                  <li
+                    key={date}
+                    className="grid grid-cols-[4.5rem_1fr] items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3.5 last:border-b-0 sm:grid-cols-[5.5rem_1fr_auto] md:px-6"
+                  >
+                    <span className="font-display text-lg font-semibold text-deep">
+                      {formatShortDate(date)}
+                      <small className="block font-sans text-[0.8125rem] font-normal text-muted">
+                        Sunday
+                      </small>
                     </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </Panel>
+                    {mine ? (
+                      <>
+                        <span>
+                          <strong>{myPositions(mine.row, myId).join(' and ')}</strong> ·{' '}
+                          {mine.venueName}
+                        </span>
+                        <span className="col-start-2 sm:col-start-auto">
+                          <Chip tone="published">Published</Chip>
+                        </span>
+                      </>
+                    ) : publishedDates.has(date) ? (
+                      <>
+                        <span className="text-muted">Not scheduled this Sunday</span>
+                        <span className="col-start-2 sm:col-start-auto">
+                          <Chip tone="draft" icon={false}>
+                            Free
+                          </Chip>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="col-span-1 text-muted sm:col-span-2">
+                        No schedule published yet
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Panel>
+        </Reveal>
 
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
-          <Panel aria-labelledby="avail-heading">
-            <div className="p-5 md:p-6">
-              <h2 id="avail-heading" className="text-2xl">
-                {unanswered > 0
-                  ? `Set your ${monthTitle(nextMonth).split(' ')[0]} availability`
-                  : 'Your availability is up to date'}
-              </h2>
-              <p className="mb-4 mt-2 text-muted">
-                {unanswered > 0
-                  ? `${unanswered} ${unanswered === 1 ? 'Sunday still needs' : 'Sundays still need'} an answer. Your administrator plans around the Sundays you mark.`
-                  : `You’ve answered every Sunday in ${monthTitle(nextMonth)}. You can still change an answer.`}
-              </p>
-              <Link
-                to={`/availability?month=${nextMonth}`}
-                className={buttonClasses(unanswered > 0 ? 'primary' : 'secondary', 'md', 'w-full')}
-              >
-                <CalendarCheck className="size-5" aria-hidden="true" />
-                {unanswered > 0 ? 'Set availability' : 'Review availability'}
-              </Link>
-            </div>
-          </Panel>
-
-          {announcements.length > 0 && (
-            <Panel aria-labelledby="news-heading">
+          <Reveal delay={80}>
+            <Panel aria-labelledby="avail-heading">
               <div className="p-5 md:p-6">
-                <h2 id="news-heading" className="text-2xl">
-                  From the church
+                <h2 id="avail-heading" className="text-2xl">
+                  {unanswered > 0
+                    ? `Set your ${monthTitle(nextMonth).split(' ')[0]} availability`
+                    : 'Your availability is up to date'}
                 </h2>
-                <ul className="m-0 mt-3 grid list-none gap-4 p-0">
-                  {announcements.map((a) => (
-                    <li key={a.id}>
-                      <p className="font-semibold">{a.title}</p>
-                      <p className="mt-0.5 text-sm text-muted">{a.body}</p>
-                    </li>
-                  ))}
-                </ul>
+                <p className="mb-4 mt-2 text-muted">
+                  {unanswered > 0
+                    ? `${unanswered} ${unanswered === 1 ? 'Sunday still needs' : 'Sundays still need'} an answer. Your administrator plans around the Sundays you mark.`
+                    : `You’ve answered every Sunday in ${monthTitle(nextMonth)}. You can still change an answer.`}
+                </p>
+                <Link
+                  to={`/availability?month=${nextMonth}`}
+                  className={buttonClasses(
+                    unanswered > 0 ? 'primary' : 'secondary',
+                    'md',
+                    'w-full',
+                  )}
+                >
+                  <CalendarCheck className="size-5" aria-hidden="true" />
+                  {unanswered > 0 ? 'Set availability' : 'Review availability'}
+                </Link>
               </div>
             </Panel>
+          </Reveal>
+
+          {announcements.length > 0 && (
+            <Reveal delay={160}>
+              <Panel aria-labelledby="news-heading">
+                <div className="p-5 md:p-6">
+                  <h2 id="news-heading" className="text-2xl">
+                    From the church
+                  </h2>
+                  <ul className="m-0 mt-3 grid list-none gap-4 p-0">
+                    {announcements.map((a) => (
+                      <li key={a.id}>
+                        <p className="font-semibold">{a.title}</p>
+                        <p className="mt-0.5 text-sm text-muted">{a.body}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Panel>
+            </Reveal>
           )}
         </div>
       </div>
+
+      {next && (
+        <>
+          <DownloadPdfDialog
+            open={pdfOpen}
+            onClose={() => setPdfOpen(false)}
+            venue={{ id: next.venueId, name: next.venueName }}
+            defaultMonth={next.date.slice(0, 7)}
+          />
+          <Dialog
+            open={cantMakeIt}
+            onClose={() => setCantMakeIt(false)}
+            title={`Can’t make ${formatLongDate(next.date)}?`}
+            description="Sundays you’re scheduled on are locked, so a schedule maker needs to take you off. Let your worship leader or schedule maker know as early as you can, and they’ll update the roster."
+            footer={
+              <>
+                <Button onClick={() => setCantMakeIt(false)}>Close</Button>
+                <Link
+                  to={`/availability?month=${monthOfNext}`}
+                  className={buttonClasses('primary')}
+                >
+                  Set availability for other Sundays
+                </Link>
+              </>
+            }
+          />
+        </>
+      )}
     </div>
   );
 }

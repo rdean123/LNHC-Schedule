@@ -11,7 +11,7 @@ npm install
 npm run demo        # http://localhost:5173
 ```
 
-Sign in with `rden@lnhc.example` (a volunteer), `scheduler@lnhc.example` (a schedule maker) or `admin@lnhc.example` (the administrator), any password. The demo uses the church's real November and December rosters and an in-memory stand-in for the backend, and a banner says so. Nothing is saved; reloading resets it.
+Sign in with `rden@lnhc.example` (a volunteer), `scheduler@lnhc.example` (a schedule maker) or `admin@lnhc.example` (the administrator), any password. Try Download PDF on Schedules (pick up to three months). The demo uses the church's real November and December rosters and an in-memory stand-in for the backend, and a banner says so. Nothing is saved; reloading resets it.
 
 ## Tech
 

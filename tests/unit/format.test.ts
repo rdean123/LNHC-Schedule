@@ -6,7 +6,9 @@ import {
   formatLongDate,
   formatShortDate,
   isValidMonth,
+  monthOptions,
   monthRange,
+  monthsBetween,
   monthTitle,
   nextSundays,
   relativeDays,
@@ -85,5 +87,24 @@ describe('months', () => {
     assert.equal(isValidMonth('2026-13'), false);
     assert.equal(isValidMonth('nonsense'), false);
     assert.equal(isValidMonth(null), false);
+  });
+});
+
+describe('month ranges for the PDF picker', () => {
+  test('lists every month between two, inclusive, across a year end', () => {
+    assert.deepEqual(monthsBetween('2026-11', '2027-01'), ['2026-11', '2026-12', '2027-01']);
+    assert.deepEqual(monthsBetween('2027-01', '2027-01'), ['2027-01']);
+  });
+
+  test('is empty when the end is before the start', () => {
+    assert.deepEqual(monthsBetween('2027-02', '2027-01'), []);
+  });
+
+  test('offers a year either side of the month on screen', () => {
+    const options = monthOptions('2026-11');
+    assert.equal(options.length, 25);
+    assert.equal(options[0], '2025-11');
+    assert.equal(options[12], '2026-11');
+    assert.equal(options[24], '2027-11');
   });
 });

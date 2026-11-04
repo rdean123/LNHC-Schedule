@@ -1,6 +1,7 @@
 import { Calendar, CalendarCheck, House, LogOut, Menu, User, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useScrolled } from '../../hooks/useScrolled';
 import { useSignedIn } from '../../app/auth';
 import { isStaff, staffPaths } from '../../lib/roles';
 import { Avatar } from '../ui/Parts';
@@ -23,6 +24,8 @@ export function VolunteerLayout() {
   const { volunteer, email, role, logOut } = useSignedIn();
   const name = volunteer?.displayName ?? email;
   const staff = isStaff(role);
+  const { pathname } = useLocation();
+  const scrolled = useScrolled();
   const paths = staffPaths(role);
 
   const desktop: Item[] = [
@@ -61,7 +64,11 @@ export function VolunteerLayout() {
         Skip to content
       </a>
       <DemoBanner />
-      <header className="sticky top-0 z-20 border-b border-line bg-surface print:hidden">
+      <header
+        className={`sticky top-0 z-20 border-b border-line bg-surface transition-shadow duration-200 print:hidden ${
+          scrolled ? 'shadow-[0_10px_24px_-16px_rgb(26_90_158/0.5)]' : ''
+        }`}
+      >
         <div className="mx-auto flex min-h-16 max-w-6xl items-center gap-5 px-4 md:px-6">
           <Brand to="/" subtitle="Lipa New Hope Church" className="text-deep" />
           <nav aria-label="Main" className="ml-2 hidden gap-1 md:flex">
@@ -71,7 +78,7 @@ export function VolunteerLayout() {
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  `flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-control px-3 font-semibold no-underline ${show ?? ''} ${
+                  `flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-control px-3 font-semibold no-underline transition-colors duration-150 ${show ?? ''} ${
                     isActive
                       ? 'bg-wash text-deep shadow-[inset_0_-3px_0_var(--color-brand)]'
                       : 'text-muted hover:bg-wash hover:text-deep'
@@ -113,9 +120,12 @@ export function VolunteerLayout() {
 
       <main
         id="main"
-        className="mx-auto max-w-6xl px-4 pb-28 pt-6 md:px-6 md:pb-16 md:pt-8 print:p-0"
+        tabIndex={-1}
+        className="mx-auto max-w-6xl px-4 pb-28 pt-6 outline-none md:px-6 md:pb-16 md:pt-8 print:p-0"
       >
-        <Outlet />
+        <div key={pathname} className="page-enter">
+          <Outlet />
+        </div>
       </main>
 
       <nav

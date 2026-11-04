@@ -191,7 +191,7 @@ export function ScheduleEditor({ finishLabel = 'Preview as volunteer' }: { finis
             onClick={open}
             aria-label={`Choose someone for ${cell.label} on ${formatMonthDay(row.date)}`}
             aria-expanded={selected}
-            className={`inline-flex min-h-11 scroll-mt-24 items-center gap-1.5 rounded-control border px-3 font-semibold text-brand hover:border-brand hover:bg-wash ${
+            className={`inline-flex min-h-11 scroll-mt-24 items-center gap-1.5 rounded-control border px-3 font-semibold text-brand transition-[background-color,border-color,transform] duration-150 hover:border-brand hover:bg-wash motion-safe:active:scale-95 ${
               selected ? 'border-2 border-brand bg-wash' : 'border-dashed border-line-strong'
             }`}
           >
@@ -204,7 +204,7 @@ export function ScheduleEditor({ finishLabel = 'Preview as volunteer' }: { finis
             onClick={open}
             aria-label={`Add another person to ${cell.label} on ${formatMonthDay(row.date)}`}
             aria-expanded={selected}
-            className={`grid size-8 scroll-mt-24 place-items-center rounded-full border text-brand hover:border-brand hover:bg-wash max-md:size-11 ${
+            className={`grid size-8 scroll-mt-24 place-items-center rounded-full border text-brand transition-[background-color,border-color,transform] duration-150 hover:border-brand hover:bg-wash max-md:size-11 motion-safe:hover:scale-110 motion-safe:active:scale-90 ${
               selected ? 'border-2 border-brand bg-wash' : 'border-dashed border-line-strong'
             }`}
           >
@@ -365,6 +365,7 @@ export function ScheduleEditor({ finishLabel = 'Preview as volunteer' }: { finis
           </div>
         ) : (
           <RosterView
+            key={`${venueId}-${month}`}
             caption={`${venue?.name} roster, ${title}`}
             columns={data.columns}
             rows={data.rows}

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useSignedIn } from '../../app/auth';
 import { useAsync } from '../../hooks/useAsync';
+import { Reveal } from '../../components/ui/Reveal';
 import { AttentionPanel } from './AttentionPanel';
 import { loadOverview } from './overview';
 
@@ -13,7 +14,9 @@ export function StaffAttention() {
   if (!data) return null;
   return (
     <div className="mt-6">
-      <AttentionPanel items={data.items} id="staff-attention" />
+      <Reveal>
+        <AttentionPanel items={data.items} id="staff-attention" />
+      </Reveal>
     </div>
   );
 }

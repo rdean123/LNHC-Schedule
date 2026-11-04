@@ -101,7 +101,7 @@ export function SegmentedChoice<T extends string>({
             type="button"
             aria-pressed={active}
             onClick={() => onChange(item.id)}
-            className={`min-h-10 rounded-control px-4 font-semibold ${
+            className={`min-h-10 rounded-control px-4 font-semibold transition-[background-color,color,transform] duration-150 motion-safe:active:scale-95 ${
               active ? 'bg-deep text-white' : 'text-muted hover:bg-wash hover:text-deep'
             }`}
           >

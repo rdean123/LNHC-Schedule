@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { toPdfTable } from '../../src/lib/pdf.ts';
+import { MAX_PDF_MONTHS, pdfFileName, toPdfTable } from '../../src/lib/pdf.ts';
 import { buildRoster, isServing, myPositions } from '../../src/lib/roster.ts';
 import type { RosterService } from '../../src/lib/roster.ts';
 
@@ -79,5 +79,19 @@ describe('PDF table', () => {
     );
     assert.deepEqual(table.head, ['Date', 'Song Leader', 'Back Up', 'Acoustic']);
     assert.deepEqual(table.body, [['8', 'Denver', 'Abe/Mara', '']]);
+  });
+});
+
+describe('PDF file names and limits', () => {
+  test('a PDF holds up to three months', () => {
+    assert.equal(MAX_PDF_MONTHS, 3);
+  });
+
+  test('one month, or a range', () => {
+    assert.equal(pdfFileName('LNHC', ['2027-01']), 'LNHC-LNHC-2027-01.pdf');
+    assert.equal(
+      pdfFileName('Garcia/Rosario', ['2027-01', '2027-02']),
+      'LNHC-Garcia-Rosario-2027-01-to-2027-02.pdf',
+    );
   });
 });

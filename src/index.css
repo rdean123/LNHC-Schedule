@@ -125,3 +125,182 @@
     background: #fff;
   }
 }
+
+/* ------------------------------------------------------------------------------------------
+   Motion. Purposeful, short, and answering what the person did (hovering, pressing, opening,
+   scrolling). Everything lives inside no-preference, so with "reduce motion" on nothing moves
+   and nothing starts hidden.
+   ------------------------------------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes pop {
+    0% {
+      opacity: 0.4;
+      transform: scale(0.78);
+    }
+    60% {
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes panel-in-side {
+    from {
+      opacity: 0;
+      transform: translateX(28px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes panel-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Moving to another screen: the new screen rises in. The animations below use fill-mode
+     "backwards" on purpose: keeping an end-state transform would turn this wrapper into the
+     containing block of every position: fixed element inside it (the assignment panel). */
+  .page-enter {
+    animation: rise-in 0.36s var(--ease-out) backwards;
+  }
+
+  /* New content replacing a skeleton or another month. */
+  .fade-in {
+    animation: fade-in 0.32s var(--ease-out) backwards;
+  }
+
+  /* A toggle changing state (a Sunday, a qualification). */
+  .pop {
+    animation: pop 0.3s var(--ease-out) backwards;
+  }
+
+  /* The assignment panel: from the side on wide screens, from the bottom on phones. */
+  .panel-in {
+    animation: panel-in-up 0.3s var(--ease-out) backwards;
+  }
+  @media (min-width: 768px) {
+    .panel-in {
+      animation-name: panel-in-side;
+    }
+  }
+
+  .toast-in {
+    animation: toast-in 0.3s var(--ease-out) backwards;
+  }
+
+  dialog[open] {
+    animation: dialog-in 0.26s var(--ease-out) backwards;
+  }
+  dialog[open]::backdrop {
+    animation: fade-in 0.26s ease-out backwards;
+  }
+
+  /* Scrolling: sections ease in the first time they come into view. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.55s var(--ease-out),
+      transform 0.55s var(--ease-out);
+  }
+  .reveal[data-seen='true'] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The one orchestrated moment: the next-Sunday panel's lines arrive in order. */
+  .hero-rise > * {
+    animation: rise-in 0.6s var(--ease-out) backwards;
+  }
+  .hero-rise > :nth-child(2) {
+    animation-delay: 0.05s;
+  }
+  .hero-rise > :nth-child(3) {
+    animation-delay: 0.1s;
+  }
+  .hero-rise > :nth-child(4) {
+    animation-delay: 0.15s;
+  }
+  .hero-rise > :nth-child(5) {
+    animation-delay: 0.2s;
+  }
+  .hero-rise > :nth-child(6) {
+    animation-delay: 0.25s;
+  }
+  .hero-rise > :nth-child(n + 7) {
+    animation-delay: 0.3s;
+  }
+
+  /* Scrolling: the cross drifts down and softens as the page moves (where the browser can). */
+  @supports (animation-timeline: scroll()) {
+    @keyframes cross-drift {
+      to {
+        opacity: 0.55;
+        transform: translateY(56px);
+      }
+    }
+    .cross-drift {
+      animation: cross-drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 480px;
+    }
+  }
+}

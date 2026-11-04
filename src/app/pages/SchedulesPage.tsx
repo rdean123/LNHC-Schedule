@@ -61,10 +61,8 @@ export function SchedulesPage() {
         )}
         {venue && roster.data && (
           <ExportButtons
-            venueName={venue.name}
+            venue={{ id: venue.id, name: venue.name }}
             month={month}
-            columns={roster.data.columns.map((c) => c.label)}
-            rows={roster.data.rows}
             disabled={!hasRows}
           />
         )}
@@ -111,6 +109,7 @@ export function SchedulesPage() {
         ) : (
           <>
             <RosterView
+              key={`${venueId}-${month}`}
               caption={`${venue?.name} schedule, ${title}`}
               columns={roster.data.columns}
               rows={roster.data.rows}

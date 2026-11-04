@@ -28,7 +28,7 @@ export function AttentionPanel({ items, id }: { items: AttentionItem[]; id: stri
           {items.map((item) => (
             <li
               key={item.key}
-              className="grid items-center gap-x-4 gap-y-3 border-b border-line px-5 py-4 last:border-b-0 sm:grid-cols-[1fr_auto] md:px-6"
+              className="grid items-center gap-x-4 gap-y-3 border-b border-line px-5 py-4 transition-colors duration-150 last:border-b-0 hover:bg-wash/60 sm:grid-cols-[1fr_auto] md:px-6"
             >
               <div>
                 <p className="font-bold text-deep">{item.title}</p>

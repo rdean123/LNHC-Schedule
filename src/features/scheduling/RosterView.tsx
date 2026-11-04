@@ -40,7 +40,7 @@ export function RosterView({
   return (
     <>
       <div
-        className="hidden overflow-x-auto md:block print:block"
+        className="fade-in hidden overflow-x-auto md:block print:block"
         role="region"
         aria-label={caption}
         tabIndex={0}
@@ -97,7 +97,7 @@ export function RosterView({
         </table>
       </div>
 
-      <div className="grid gap-3 p-3 md:hidden print:hidden">
+      <div className="fade-in grid gap-3 p-3 md:hidden print:hidden">
         {rows.map((row) => {
           const hl = highlightRow?.(row) ?? false;
           const cells = hideEmptyOnPhone ? row.cells.filter((c) => c.people.length > 0) : row.cells;

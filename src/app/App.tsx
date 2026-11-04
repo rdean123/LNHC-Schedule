@@ -3,6 +3,7 @@ import { AdminLayout } from '../components/layout/AdminLayout';
 import { VolunteerLayout } from '../components/layout/VolunteerLayout';
 import { ToastProvider } from '../components/ui/Toast';
 import { AuthProvider } from './AuthProvider';
+import { RouteEffects } from './RouteEffects';
 import { ScheduleEditor } from '../features/scheduling/ScheduleEditor';
 import { VolunteersManager } from '../features/volunteers/VolunteersManager';
 import { HomeRedirect, RequireAdmin, RequireAuth, RequireStaff } from './guards';
@@ -23,6 +24,7 @@ export default function App() {
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
+          <RouteEffects />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/accept-invite" element={<SetPasswordPage kind="invite" />} />
