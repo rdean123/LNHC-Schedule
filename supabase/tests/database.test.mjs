@@ -4,54 +4,18 @@
 // This proves the SQL logic and row level security. It is not a substitute for checking the
 // hosted Supabase project (see DATABASE_SCHEMA.md, "Verifying the hosted project").
 
-import { PGlite } from '@electric-sql/pglite';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { before, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { RLS, createDb, fails, migrationFiles, migrationsDir } from './harness.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const migrationsDir = process.env.MIGRATIONS_DIR ?? path.join(here, '..', 'migrations');
-const migrationFiles = fs
-  .readdirSync(migrationsDir)
-  .filter((f) => f.endsWith('.sql'))
-  .sort();
-
-const db = new PGlite();
+const { db, as, rows, count } = await createDb();
 const id = {}; // fixture ids
 
-async function as(userId, fn) {
-  const role = userId === 'anon' ? 'anon' : 'authenticated';
-  const sub = userId === 'anon' ? '' : userId;
-  await db.exec(`select set_config('request.jwt.claim.sub', '${sub}', false); set role ${role};`);
-  try {
-    return await fn();
-  } finally {
-    await db.exec(`reset role; select set_config('request.jwt.claim.sub', '', false);`);
-  }
-}
-
-const rows = async (sql, params) => (await db.query(sql, params)).rows;
-const count = async (sql, params) => Number((await rows(sql, params))[0].n);
-
-async function fails(promise, pattern) {
-  await assert.rejects(promise, (err) => {
-    if (pattern && !pattern.test(err.message)) {
-      assert.fail(`Expected error matching ${pattern} but got: ${err.message}`);
-    }
-    return true;
-  });
-}
-
-const RLS = /row-level security|permission denied/i;
-
 before(async () => {
-  await db.exec(fs.readFileSync(path.join(here, 'prelude.sql'), 'utf8'));
-  for (const file of migrationFiles) {
-    await db.exec(fs.readFileSync(path.join(migrationsDir, file), 'utf8'));
-  }
-
   // Accounts. The on_auth_user_created trigger gives each one a volunteer role.
   const admin = await rows(
     `insert into auth.users (email) values ('admin@example.com') returning id`,
@@ -103,6 +67,14 @@ before(async () => {
   id.tangway = (await rows(`select id from public.venues where name = 'Tangway'`))[0].id;
   id.keyboard = (await rows(`select id from public.positions where name = 'Keyboard'`))[0].id;
   id.drummer = (await rows(`select id from public.positions where name = 'Drummer'`))[0].id;
+  id.musician = (await rows(`select id from public.positions where name = 'Musician'`))[0].id;
+
+  // The scheduling rules require qualifications before anyone can be assigned.
+  await db.query(
+    `insert into public.volunteer_qualifications (volunteer_id, position_id) values
+      ($1, $4), ($1, $5), ($1, $6), ($2, $5), ($3, $5)`,
+    [id.alice, id.bob, id.cara, id.keyboard, id.drummer, id.musician],
+  );
 
   // One published and one draft service, each with an assignment.
   id.pubService = (
@@ -126,7 +98,7 @@ before(async () => {
 
 describe('migrations and reference data', () => {
   test('all migrations applied and reference data matches the church schedules', async () => {
-    assert.equal(migrationFiles.length, 6);
+    assert.equal(migrationFiles.length, 7);
     assert.equal(await count(`select count(*) n from public.ministries`), 1);
     assert.equal(await count(`select count(*) n from public.venues`), 3);
     assert.equal(await count(`select count(*) n from public.positions`), 12);
@@ -497,7 +469,7 @@ describe('administrators', () => {
       await fails(
         db.query(
           `insert into public.assignments (service_id, service_date, position_id, volunteer_id) values ($1, '2026-11-08', $2, $3)`,
-          [other, id.drummer, id.alice],
+          [other, id.musician, id.alice],
         ),
         /one_assignment_per_person_per_sunday/,
       );
@@ -570,8 +542,12 @@ describe('administrators', () => {
         await rows(`insert into public.volunteers (display_name) values ('Eve') returning id`)
       )[0].id;
       await db.query(
+        `insert into public.volunteer_qualifications (volunteer_id, position_id) values ($1, $2)`,
+        [eve, id.musician],
+      );
+      await db.query(
         `insert into public.assignments (service_id, service_date, position_id, volunteer_id) values ($1, '2026-12-06', $2, $3)`,
-        [s, id.keyboard, eve],
+        [s, id.musician, eve],
       );
       await db.query(`update public.services set service_date = '2026-12-13' where id = $1`, [s]);
       const a = await rows(

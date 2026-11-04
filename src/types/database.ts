@@ -126,6 +126,48 @@ export type AuditLogRow = {
   created_at: string;
 };
 
+export type ScheduleProblemKind = 'inactive' | 'not_qualified' | 'away' | 'position_not_at_venue';
+
+/** A problem with an existing assignment. `message` is written for people. */
+export type ScheduleProblem = {
+  service_id: string;
+  assignment_id: string;
+  venue_id: string;
+  service_date: string;
+  volunteer_id: string;
+  position_id: string;
+  problem: ScheduleProblemKind;
+  message: string;
+};
+
+export type SuggestionStatus = 'available' | 'no_answer' | 'away' | 'already_assigned';
+
+/** A qualified volunteer for a position on a service, and whether they can be assigned. */
+export type VolunteerSuggestion = {
+  volunteer_id: string;
+  display_name: string;
+  can_assign: boolean;
+  status: SuggestionStatus;
+  reason: string;
+  last_served: string | null;
+  times_served_8_weeks: number;
+};
+
+export type AssignmentHistoryEntry = {
+  changed_at: string;
+  action: 'added' | 'removed' | 'changed';
+  actor_name: string;
+  volunteer_name: string;
+  position_name: string;
+};
+
+export type CopyScheduleResult = {
+  services_created: number;
+  assignments_created: number;
+  skipped: { service_date: string; volunteer: string; position: string; reason: string }[];
+  days_skipped: { service_date: string; reason: string }[];
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -175,6 +217,24 @@ export type Database = {
     Functions: {
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       current_volunteer_id: { Args: Record<PropertyKey, never>; Returns: string | null };
+      schedule_problems: {
+        Args: { p_from: string; p_to: string; p_venue_id?: string };
+        Returns: ScheduleProblem[];
+      };
+      suggest_volunteers: {
+        Args: { p_service_id: string; p_position_id: string };
+        Returns: VolunteerSuggestion[];
+      };
+      assignment_history: { Args: { p_service_id: string }; Returns: AssignmentHistoryEntry[] };
+      copy_schedule: {
+        Args: {
+          p_venue_id: string;
+          p_source_start: string;
+          p_source_end: string;
+          p_target_start: string;
+        };
+        Returns: CopyScheduleResult;
+      };
     };
     Enums: { app_role: AppRole; publish_status: PublishStatus };
     CompositeTypes: Record<string, never>;
