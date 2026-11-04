@@ -1,0 +1,6 @@
+fastapi==0.138.0
+pydantic==2.13.4
+python-dotenv==1.2.2
+sqlmodel==0.0.38
+uvicorn[standard]==0.38.0
+psycopg2-binary==2.9.10
