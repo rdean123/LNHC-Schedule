@@ -1,0 +1,2 @@
+-- Intentionally empty. Reference data lives in migrations so the hosted project gets it too.
+-- Volunteers, qualifications and schedules start empty and are entered in the app.

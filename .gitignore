@@ -1,4 +1,4 @@
-# Secrets and environment variables (keep the example file)
+# Secrets and environment variables (the example file is kept)
 .env*
 !.env.example
 *.pem
@@ -56,7 +56,12 @@ __pycache__/
 *.pyc
 .venv/
 
+# Tool state
+supabase/.temp/
+supabase/.branches/
+.impeccable/hook.cache.json
+
 # Project-specific
 legacy/
 *.md
-.impeccable/hook.cache.json
+!README.md
