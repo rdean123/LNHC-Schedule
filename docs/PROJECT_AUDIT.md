@@ -10,11 +10,11 @@ There is no login, no notion of who a volunteer is beyond a name, no skills, no 
 
 ## 2. How the real schedules are structured (from your three images)
 
-| Venue | Period shown | Positions (columns) |
-|---|---|---|
-| LNHC | Nov–Dec 2026 | Song Leader, Back Up (2 names), Lead Guitarist, Acoustic, Bass Guitarist, Keyboard, Drummer (often 2 names), Sound Tech, Easy Worship (sometimes 2 names) |
-| Tangway | Sep–Oct 2026 | Songleader, Musician, Multimedia, Sound Tech |
-| Garcia/Rosario | Sep–Oct 2026 | Singer, Musicians |
+| Venue          | Period shown | Positions (columns)                                                                                                                                       |
+| -------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LNHC           | Nov–Dec 2026 | Song Leader, Back Up (2 names), Lead Guitarist, Acoustic, Bass Guitarist, Keyboard, Drummer (often 2 names), Sound Tech, Easy Worship (sometimes 2 names) |
+| Tangway        | Sep–Oct 2026 | Songleader, Musician, Multimedia, Sound Tech                                                                                                              |
+| Garcia/Rosario | Sep–Oct 2026 | Singer, Musicians                                                                                                                                         |
 
 What the images show that the current code does **not** handle:
 
@@ -24,7 +24,7 @@ What the images show that the current code does **not** handle:
    - Sica: Song Leader, Back Up, Keyboard (LNHC) and Musician (Tangway)
    - Denver: Song Leader, Acoustic, Bass · Natan: Back Up, Acoustic, Bass, Musician (Garcia/Rosario)
    - Jonas: Lead Guitar, Bass, Musician (Garcia/Rosario) · Ferl: Bass, Acoustic · David: Keyboard, Musician, Sound Tech · Jireh: Drummer, Musician · Airon: Sound Tech at Tangway and LNHC
-   - These are *inferred from assignments*, not from any qualification list — I need the real list from you.
+   - These are _inferred from assignments_, not from any qualification list — I need the real list from you.
 4. **Month-by-month tables** with a month title, a trailing note ("General Cleaning will be conducted after the rehearsal…") and green header `#92D050`. The XLSX export copies this for LNHC only.
 5. **Every date is a Sunday**; Tangway and Garcia/Rosario share the same dates (Sep 13/20/27, Oct 11/18 — Oct 4 and Oct 25 are absent). I don't know whether the gaps mean "no service" or "not yet scheduled".
 6. **Names are nicknames/first names** (Rden, Ves, Miggy, Oba, Jam…). Fine for display; matters for account matching.
@@ -32,6 +32,7 @@ What the images show that the current code does **not** handle:
 ## 3. What's good, what's not
 
 **Retain (as ideas or assets)**
+
 - The three venues and their position lists — as seed data, not as table schemas.
 - The same-day double-booking idea (rule to be confirmed, see Q3).
 - Month-grouped, green-header export layout and footer note — as the PDF/Excel export template.
@@ -40,6 +41,7 @@ What the images show that the current code does **not** handle:
 - Responsive mobile card view idea; skeleton loading; per-row delete confirmation.
 
 **Rewrite**
+
 - Data model: replace 3 hardcoded tables with venues → services (dates) → positions → assignments, so a new position or venue is a data change, not a code change.
 - Conflict/qualification/availability logic: one implementation, enforced in the database.
 - `ScheduleTable.tsx` (554 lines): split into data hooks, roster grid, edit panel, export.
@@ -47,6 +49,7 @@ What the images show that the current code does **not** handle:
 - Export: PDF + print stylesheet + per-venue/personal views.
 
 **Remove**
+
 - The FastAPI backend, once its (small) logic is ported and data migrated: its entire job is CRUD plus one date check, and it has no auth.
 - `scripts/deleteMember.py`, committed `.pyc`, `html2canvas`, CDN ExcelJS `<script>`, `window.Buffer` hack (if Excel export is dropped), unused store actions/types, `App.css`.
 
@@ -67,7 +70,8 @@ Supabase
 ```
 
 Key decisions:
-- **Rules live in Postgres**, not in React and not duplicated: foreign keys, a qualification check trigger on assignments, a uniqueness/overlap constraint for double-booking, RLS for who may write. The UI *reads* these results to show friendly messages and filter dropdowns.
+
+- **Rules live in Postgres**, not in React and not duplicated: foreign keys, a qualification check trigger on assignments, a uniqueness/overlap constraint for double-booking, RLS for who may write. The UI _reads_ these results to show friendly messages and filter dropdowns.
 - **Roles**: `admin`, `scheduler`, `volunteer` stored in a table the client cannot write; RLS checks it. Public sign-up cannot create privileged roles.
 - **Draft vs published** is a status on the schedule; volunteers' RLS only sees published rows.
 - **PDF**: generate in the browser (print-optimised layout / small library) — decide in Phase 2. No server needed.
@@ -87,27 +91,27 @@ Rough relational shape (finalised in Phase 3, not binding):
 
 1. **Production DB:** where is it hosted, roughly how many schedule rows exist, and can you give me an export? Is the old Netlify site/backend to stay live during transition?
 2. **Multiple people per position:** should Drummer / Easy Worship / Back Up allow N people per slot? Which positions allow how many?
-3. **Same day, multiple venues:** may one person serve at two venues on the same date (e.g. Airon at Tangway and LNHC)? Current code forbids it. Same *time* only, or any time that day?
+3. **Same day, multiple venues:** may one person serve at two venues on the same date (e.g. Airon at Tangway and LNHC)? Current code forbids it. Same _time_ only, or any time that day?
 4. **Required vs optional positions** per venue (Acoustic looks optional; what else)?
 5. **Services:** are all services Sunday-only? Do you want a time per service? What do missing dates (Oct 4, Oct 25) mean?
 6. **Qualifications:** can you give me, per volunteer, the roles they can do? (I can draft it from the images for you to correct.)
 7. **People:** who are the admin(s) and schedulers? How many volunteers, and do they all have email? Should nickname-only members be able to log in?
 8. **Visibility:** may volunteers see everyone's assignments across all venues? (My default: yes, published only.)
 9. **Availability meaning:** specific unavailable dates, or recurring weekly patterns too? Deadline before scheduling?
-10. **Branding:** I can't reliably read Facebook from here. Please send the logo (is `frontend/public/favicon.svg` it?) and 2–3 screenshots of the page. 
+10. **Branding:** I can't reliably read Facebook from here. Please send the logo (is `frontend/public/favicon.svg` it?) and 2–3 screenshots of the page.
 11. **Language:** English only?
 
 ## 7. Revised phased plan
 
 Your phases stand; adjustments from what I found:
 
-| Phase | Adjustment |
-|---|---|
+| Phase           | Adjustment                                                                                                                                                                                                                                                                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 Consolidation | The repos are **already merged** into one repo (`backend/`, `frontend/`, single commit, no nested `.git`). Remaining work: move to the single-root layout, add lint/format/scripts, make the frontend build run. **Don't fix backend bugs** — it's being replaced; park it under `legacy/backend/` until data migration is verified, then delete. |
-| 2 Design | Needs the logo/screenshots (Q10) and the answers to Q2–Q5 so mockups show the real roster (multi-person slots, optional positions). Checkpoint after mockups, as you specified. |
-| 3 DB/Auth | Needs the new Supabase project and Q1/Q6/Q7. Migrations first, RLS tests with SQL, then auth + profiles + qualifications + availability. |
-| 4 Scheduling | Rules in SQL + RPC suggestions; test each rule listed in your §7. Port the old data here only after your approval. |
-| 5–8 | As written. |
+| 2 Design        | Needs the logo/screenshots (Q10) and the answers to Q2–Q5 so mockups show the real roster (multi-person slots, optional positions). Checkpoint after mockups, as you specified.                                                                                                                                                                   |
+| 3 DB/Auth       | Needs the new Supabase project and Q1/Q6/Q7. Migrations first, RLS tests with SQL, then auth + profiles + qualifications + availability.                                                                                                                                                                                                          |
+| 4 Scheduling    | Rules in SQL + RPC suggestions; test each rule listed in your §7. Port the old data here only after your approval.                                                                                                                                                                                                                                |
+| 5–8             | As written.                                                                                                                                                                                                                                                                                                                                       |
 
 Phase 0 files (`docs/*.md`) are untouched by git — nothing is committed. Suggested commit when you approve:
 

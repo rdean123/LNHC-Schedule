@@ -32,23 +32,23 @@ Deployment evidence: CORS allows `https://lnhc-pnw-sched.netlify.app` (frontend 
 
 Three independent schedule tables, one column per position, all nullable, all storing a `members.id`:
 
-| Table | Position columns |
-|---|---|
-| `lnhc_schedules` | song_leader, backup_1, backup_2, lead_guitar, acoustic, bass, keyboard, drummer, sound_tech, easy_worship |
-| `tangway_schedules` | song_leader, musician, multimedia, sound_tech |
-| `garcia_rosario_schedules` | singer, musicians |
+| Table                      | Position columns                                                                                          |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `lnhc_schedules`           | song_leader, backup_1, backup_2, lead_guitar, acoustic, bass, keyboard, drummer, sound_tech, easy_worship |
+| `tangway_schedules`        | song_leader, musician, multimedia, sound_tech                                                             |
+| `garcia_rosario_schedules` | singer, musicians                                                                                         |
 
 Each has `id uuid`, `date`, `created_at`, and an index on `date`. Foreign keys to `members` exist **only** on `lnhc_schedules.backup_1_id` and `backup_2_id`. No unique constraints. No draft/published state, service time, or ministry concept.
 
 ## API (no authentication on any endpoint)
 
-| Method | Path | Notes |
-|---|---|---|
-| GET/POST | `/members` | GET returns active only; POST takes a raw `dict` body |
-| DELETE | `/members/{id}` | soft delete (`is_active=false`) |
-| GET | `/availability` | "is this member unbooked that date" — unused by frontend |
-| GET/POST | `/lnhc`, `/tangway`, `/garcia-rosario` | GET returns all rows, unordered |
-| PUT/DELETE | `/{loc}/{id}` | update (full payload) / hard delete |
+| Method     | Path                                   | Notes                                                    |
+| ---------- | -------------------------------------- | -------------------------------------------------------- |
+| GET/POST   | `/members`                             | GET returns active only; POST takes a raw `dict` body    |
+| DELETE     | `/members/{id}`                        | soft delete (`is_active=false`)                          |
+| GET        | `/availability`                        | "is this member unbooked that date" — unused by frontend |
+| GET/POST   | `/lnhc`, `/tangway`, `/garcia-rosario` | GET returns all rows, unordered                          |
+| PUT/DELETE | `/{loc}/{id}`                          | update (full payload) / hard delete                      |
 
 Create/update flow: collect non-null member ids → `SchedulingService.validate_members` → for each id, query all three tables for that date (excluding the row being edited) → 400 `"Member already scheduled on this date"` if found → insert/update. The check and the write are separate statements with no lock or DB constraint.
 
