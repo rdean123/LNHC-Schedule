@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home · LNHC Schedule</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockup.css" />
+    <script src="mockup.js" defer></script>
+    <style>
+      .cols {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+        align-items: start;
+      }
+      .upcoming {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .upcoming li {
+        display: grid;
+        grid-template-columns: 5.5rem 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 24px;
+        border-bottom: 1px solid var(--line);
+      }
+      .upcoming li:last-child {
+        border-bottom: 0;
+      }
+      .upcoming .d {
+        font: 600 1.125rem var(--font-display);
+        color: var(--blue-deep);
+      }
+      .upcoming .d small {
+        display: block;
+        font: 400 0.8125rem var(--font-ui);
+        color: var(--muted);
+      }
+      .upcoming .free {
+        color: var(--muted);
+      }
+      .dl {
+        display: grid;
+        gap: 8px;
+      }
+      @media (max-width: 860px) {
+        .cols {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 760px) {
+        .upcoming li {
+          padding: 12px 16px;
+          grid-template-columns: 4.5rem 1fr;
+        }
+        .upcoming li .chip {
+          grid-column: 2;
+          justify-self: start;
+        }
+        .hero .actions .btn {
+          flex: 1 1 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header data-chrome="volunteer" data-active="home"></header>
+    <main class="page">
+      <section class="hero cross-motif" aria-labelledby="next">
+        <p>Hi Rden, you’re serving in 11 days.</p>
+        <h1 class="when" id="next" style="margin-top: 8px">Sunday, November 15</h1>
+        <p class="role">Lead Guitarist</p>
+        <p class="where">LNHC · Altamirano St., Mataas na Lupa</p>
+        <div class="with" aria-label="Serving with you">
+          <div><b>Song Leader</b>Cyril</div>
+          <div><b>Back Up</b>Mara, Moises</div>
+          <div><b>Acoustic</b>Denver</div>
+          <div><b>Bass</b>Ferl</div>
+          <div><b>Keyboard</b>David</div>
+          <div><b>Drums</b>Jireh, Miggy</div>
+          <div><b>Sound</b>Kris</div>
+          <div><b>Easy Worship</b>Oba</div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="schedule-month.html"
+            ><i data-i="calendar"></i>See the full schedule</a
+          >
+          <a class="btn" href="print.html"><i data-i="download"></i>Download PDF</a>
+          <a class="btn" href="my-availability.html">I can’t make it</a>
+        </div>
+      </section>
+
+      <div class="cols">
+        <section class="panel" aria-labelledby="up">
+          <div class="panel-head">
+            <h2 id="up">Your upcoming Sundays</h2>
+            <a href="schedule-month.html">All schedules</a>
+          </div>
+          <ul class="upcoming">
+            <li>
+              <span class="d">Nov 8<small>Sunday</small></span
+              ><span class="free">Not scheduled this Sunday</span
+              ><span class="chip draft">Free</span>
+            </li>
+            <li>
+              <span class="d">Nov 15<small>Sunday</small></span
+              ><span><strong>Lead Guitarist</strong> · LNHC</span
+              ><span class="chip published"><i data-i="check" data-c="sm"></i>Published</span>
+            </li>
+            <li>
+              <span class="d">Nov 22<small>Sunday</small></span
+              ><span><strong>Lead Guitarist</strong> · LNHC</span
+              ><span class="chip published"><i data-i="check" data-c="sm"></i>Published</span>
+            </li>
+            <li>
+              <span class="d">Nov 29<small>Sunday</small></span
+              ><span><strong>Lead Guitarist</strong> · LNHC</span
+              ><span class="chip published"><i data-i="check" data-c="sm"></i>Published</span>
+            </li>
+            <li>
+              <span class="d">Dec 6<small>Sunday</small></span
+              ><span><strong>Lead Guitarist</strong> · LNHC</span
+              ><span class="chip published"><i data-i="check" data-c="sm"></i>Published</span>
+            </li>
+          </ul>
+        </section>
+
+        <div class="stack">
+          <section class="panel" aria-labelledby="av">
+            <div class="panel-body">
+              <h2 id="av">Set your January availability</h2>
+              <p class="muted" style="margin: 8px 0 16px">
+                Your scheduler plans around the Sundays you mark.
+              </p>
+              <a class="btn primary block" href="my-availability.html"
+                ><i data-i="calendar-check"></i>Set availability</a
+              >
+            </div>
+          </section>
+          <section class="panel" aria-labelledby="ann">
+            <div class="panel-body">
+              <h2 id="ann">From the church</h2>
+              <p style="margin-top: 12px">
+                <strong>November theme: More Precious Than Gold.</strong>
+              </p>
+              <p class="muted small" style="margin-top: 4px">
+                General cleaning follows rehearsal. Thank you for serving.
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <nav class="tabbar" aria-label="Main" data-tabbar="volunteer" data-active="home"></nav>
+  </body>
+</html>

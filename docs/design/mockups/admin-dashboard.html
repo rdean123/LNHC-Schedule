@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard · LNHC Schedule Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockup.css" />
+    <script src="mockup.js" defer></script>
+    <style>
+      .cols {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+      .todo {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .todo li {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px 16px;
+        align-items: center;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--line);
+      }
+      .todo li:last-child {
+        border-bottom: 0;
+      }
+      .todo .t {
+        font-weight: 700;
+        color: var(--blue-deep);
+      }
+      .todo .s {
+        color: var(--muted);
+        font-size: 0.9375rem;
+      }
+      .next td,
+      .next th {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: middle;
+      }
+      .next {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .next thead th {
+        background: var(--blue-50);
+        color: var(--blue-deep);
+        font-size: 0.875rem;
+      }
+      .next tbody th {
+        font: 600 1.0625rem var(--font-display);
+        color: var(--blue-deep);
+        white-space: nowrap;
+      }
+      .next a.chip {
+        text-decoration: none;
+      }
+      .next a.chip:hover {
+        filter: brightness(0.96);
+      }
+      .plain {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .plain li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .plain li:last-child {
+        border-bottom: 0;
+      }
+      @media (max-width: 1000px) {
+        .cols {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 760px) {
+        .todo li {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+        .todo .btn {
+          width: 100%;
+        }
+        .next {
+          font-size: 0.875rem;
+        }
+        .next td,
+        .next th {
+          padding: 10px 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="side" data-chrome="admin" data-active="dash"></aside>
+      <main>
+        <div class="page">
+          <div class="page-head">
+            <div>
+              <h1>Dashboard</h1>
+              <p>Today is Wednesday, November 4. The next service is this Sunday, November 8.</p>
+            </div>
+            <a class="btn primary" href="admin-roster.html"><i data-i="plus"></i>New schedule</a>
+          </div>
+
+          <div class="cols">
+            <div class="stack">
+              <section class="panel" aria-labelledby="att">
+                <div class="panel-head">
+                  <h2 id="att">Needs your attention</h2>
+                  <span class="chip attention"><i data-i="alert" data-c="sm"></i>3 items</span>
+                </div>
+                <ul class="todo">
+                  <li>
+                    <div>
+                      <div class="t">Tangway · Sunday, Nov 8</div>
+                      <div class="s">No roster yet. Service is in 4 days.</div>
+                    </div>
+                    <a class="btn sm primary" href="admin-roster.html">Create roster</a>
+                  </li>
+                  <li>
+                    <div>
+                      <div class="t">Garcia/Rosario · Sunday, Nov 8</div>
+                      <div class="s">No roster yet. Service is in 4 days.</div>
+                    </div>
+                    <a class="btn sm primary" href="admin-roster.html">Create roster</a>
+                  </li>
+                  <li>
+                    <div>
+                      <div class="t">LNHC · January 2027</div>
+                      <div class="s">Draft with 5 Sundays. Not visible to volunteers yet.</div>
+                    </div>
+                    <a class="btn sm" href="admin-roster.html">Review and publish</a>
+                  </li>
+                </ul>
+              </section>
+
+              <section class="panel" aria-labelledby="nx">
+                <div class="panel-head">
+                  <h2 id="nx">Next three Sundays</h2>
+                  <a href="admin-roster.html">Open schedules</a>
+                </div>
+                <div class="table-wrap">
+                  <table class="next">
+                    <thead>
+                      <tr>
+                        <th scope="col">Sunday</th>
+                        <th scope="col">LNHC</th>
+                        <th scope="col">Tangway</th>
+                        <th scope="col">Garcia/Rosario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">Nov 8</th>
+                        <td>
+                          <a class="chip published" href="admin-roster.html"
+                            ><i data-i="check" data-c="sm"></i>Published</a
+                          >
+                        </td>
+                        <td>
+                          <a class="chip attention" href="admin-roster.html"
+                            ><i data-i="plus" data-c="sm"></i>No roster</a
+                          >
+                        </td>
+                        <td>
+                          <a class="chip attention" href="admin-roster.html"
+                            ><i data-i="plus" data-c="sm"></i>No roster</a
+                          >
+                        </td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Nov 15</th>
+                        <td>
+                          <a class="chip published" href="admin-roster.html"
+                            ><i data-i="check" data-c="sm"></i>Published</a
+                          >
+                        </td>
+                        <td>
+                          <a class="chip attention" href="admin-roster.html"
+                            ><i data-i="plus" data-c="sm"></i>No roster</a
+                          >
+                        </td>
+                        <td>
+                          <a class="chip attention" href="admin-roster.html"
+                            ><i data-i="plus" data-c="sm"></i>No roster</a
+                          >
+                        </td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Nov 22</th>
+                        <td>
+                          <a class="chip published" href="admin-roster.html"
+                            ><i data-i="check" data-c="sm"></i>Published</a
+                          >
+                        </td>
+                        <td>
+                          <a class="chip attention" href="admin-roster.html"
+                            ><i data-i="plus" data-c="sm"></i>No roster</a
+                          >
+                        </td>
+                        <td>
+                          <a class="chip attention" href="admin-roster.html"
+                            ><i data-i="plus" data-c="sm"></i>No roster</a
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+
+            <aside class="stack" aria-label="Volunteers">
+              <section class="panel">
+                <div class="panel-body">
+                  <h2>January availability</h2>
+                  <p class="muted" style="margin: 8px 0 12px">3 volunteers haven’t answered yet.</p>
+                  <ul class="plain">
+                    <li><span>Ferl</span><span class="muted">No answer</span></li>
+                    <li><span>Miggy</span><span class="muted">No answer</span></li>
+                    <li><span>Kris</span><span class="muted">No answer</span></li>
+                  </ul>
+                  <a class="btn block" style="margin-top: 16px" href="admin-volunteers.html"
+                    ><i data-i="send"></i>Send a reminder</a
+                  >
+                </div>
+              </section>
+              <section class="panel">
+                <div class="panel-body">
+                  <h2>Pending invites</h2>
+                  <p class="muted" style="margin: 8px 0 12px">1 volunteer hasn’t set a password.</p>
+                  <ul class="plain">
+                    <li><span>Oba</span><a href="admin-volunteers.html">Resend invite</a></li>
+                  </ul>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+    <nav class="tabbar" aria-label="Main" data-tabbar="admin" data-active="dash"></nav>
+  </body>
+</html>

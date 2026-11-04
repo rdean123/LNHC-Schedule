@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "createdAt": "2026-11-04T11:42:23.999Z",
+        "reason": "Agent decision, not user confirmed: same export-matching exception"
+      }
+    ]
+  }
+}

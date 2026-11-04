@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My availability · LNHC Schedule</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockup.css" />
+    <script src="mockup.js" defer></script>
+    <style>
+      .legend {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .avail-wrap {
+        overflow-x: auto;
+      }
+      .avail .day[aria-pressed] .on,
+      .avail .day[aria-pressed] .off {
+        display: none;
+      }
+      .avail .day[aria-pressed='true'] .on {
+        display: inline-flex;
+        gap: 3px;
+        align-items: center;
+      }
+      .avail .day[aria-pressed='false'] .off {
+        display: inline-flex;
+        gap: 3px;
+        align-items: center;
+      }
+      @media (max-width: 760px) {
+        .avail .day .lbl {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          white-space: nowrap;
+        }
+        .avail {
+          gap: 4px;
+        }
+      }
+      .avail button.day small {
+        white-space: nowrap;
+      }
+      textarea.input {
+        min-height: 88px;
+        padding: 10px 12px;
+        resize: vertical;
+      }
+    </style>
+  </head>
+  <body>
+    <header data-chrome="volunteer" data-active="avail"></header>
+    <main class="page">
+      <div class="page-head">
+        <div>
+          <h1>My availability</h1>
+          <p>
+            Tap a Sunday to switch between “Can serve” and “Away”. Your scheduler sees this when
+            building the roster.
+          </p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="row">
+            <button class="btn quiet" aria-label="Previous month"><i data-i="left"></i></button>
+            <h2>January 2027</h2>
+            <button class="btn quiet" aria-label="Next month"><i data-i="right"></i></button>
+          </div>
+          <button class="btn sm">Mark every Sunday “Can serve”</button>
+        </div>
+        <div class="panel-body">
+          <div class="legend" aria-hidden="true">
+            <span
+              ><svg class="icon sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></svg>Can
+              serve</span
+            ><span
+              ><svg class="icon sm" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m4.9 4.9 14.2 14.2" /></svg
+              >Away</span
+            >
+          </div>
+          <div class="avail-wrap">
+            <div class="avail" role="group" aria-label="January 2027">
+              <div class="dow">Sun</div>
+              <div class="dow">Mon</div>
+              <div class="dow">Tue</div>
+              <div class="dow">Wed</div>
+              <div class="dow">Thu</div>
+              <div class="dow">Fri</div>
+              <div class="dow">Sat</div>
+              <span></span><span></span><span></span><span></span><span></span>
+              <div class="day">1</div>
+              <div class="day">2</div>
+              <button class="day" aria-pressed="true">
+                <span>3</span
+                ><small class="on"
+                  ><i data-i="check" data-c="sm"></i><span class="lbl">Can serve</span></small
+                ><small class="off"
+                  ><i data-i="ban" data-c="sm"></i><span class="lbl">Away</span></small
+                >
+              </button>
+              <div class="day">4</div>
+              <div class="day">5</div>
+              <div class="day">6</div>
+              <div class="day">7</div>
+              <div class="day">8</div>
+              <div class="day">9</div>
+              <button class="day" aria-pressed="true">
+                <span>10</span
+                ><small class="on"
+                  ><i data-i="check" data-c="sm"></i><span class="lbl">Can serve</span></small
+                ><small class="off"
+                  ><i data-i="ban" data-c="sm"></i><span class="lbl">Away</span></small
+                >
+              </button>
+              <div class="day">11</div>
+              <div class="day">12</div>
+              <div class="day">13</div>
+              <div class="day">14</div>
+              <div class="day">15</div>
+              <div class="day">16</div>
+              <button class="day" aria-pressed="false">
+                <span>17</span
+                ><small class="on"
+                  ><i data-i="check" data-c="sm"></i><span class="lbl">Can serve</span></small
+                ><small class="off"
+                  ><i data-i="ban" data-c="sm"></i><span class="lbl">Away</span></small
+                >
+              </button>
+              <div class="day">18</div>
+              <div class="day">19</div>
+              <div class="day">20</div>
+              <div class="day">21</div>
+              <div class="day">22</div>
+              <div class="day">23</div>
+              <button class="day" aria-pressed="true">
+                <span>24</span
+                ><small class="on"
+                  ><i data-i="check" data-c="sm"></i><span class="lbl">Can serve</span></small
+                ><small class="off"
+                  ><i data-i="ban" data-c="sm"></i><span class="lbl">Away</span></small
+                >
+              </button>
+              <div class="day">25</div>
+              <div class="day">26</div>
+              <div class="day">27</div>
+              <div class="day">28</div>
+              <div class="day">29</div>
+              <div class="day">30</div>
+              <button class="day" aria-pressed="true">
+                <span>31</span
+                ><small class="on"
+                  ><i data-i="check" data-c="sm"></i><span class="lbl">Can serve</span></small
+                ><small class="off"
+                  ><i data-i="ban" data-c="sm"></i><span class="lbl">Away</span></small
+                >
+              </button>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top: 24px; max-width: 560px">
+            <label for="note">Note for your scheduler (optional)</label>
+            <textarea
+              class="input"
+              id="note"
+              placeholder="For example: back from a trip on Jan 18"
+            ></textarea>
+          </div>
+          <div class="row">
+            <button class="btn primary"><i data-i="check"></i>Save availability</button>
+            <span class="toast no-print" role="status"
+              ><i data-i="check"></i>Saved. Your scheduler can see this now.</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <p class="callout info small" style="margin-top: 16px">
+        <i data-i="info" data-c="sm"></i>
+        <span
+          >Sundays you’re already scheduled on appear as “Serving” and can’t be changed here. To
+          step out of one, message your scheduler.</span
+        >
+      </p>
+    </main>
+    <nav class="tabbar" aria-label="Main" data-tabbar="volunteer" data-active="avail"></nav>
+  </body>
+</html>

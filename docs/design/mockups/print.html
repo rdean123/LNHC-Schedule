@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDF and print preview · LNHC Schedule</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockup.css" />
+    <script src="mockup.js" defer></script>
+    <style>
+      .paper .head {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-bottom: 1px solid #000;
+        padding-bottom: 12px;
+        margin-bottom: 8px;
+      }
+      .paper .head img {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+      }
+      .paper .head h2 {
+        font-size: 22px;
+        margin: 0;
+        line-height: 1.1;
+      }
+      .paper .head p {
+        margin: 2px 0 0;
+        color: #444;
+        font-size: 13px;
+      }
+      .paper h3 {
+        text-align: center;
+        margin: 16px 0 4px;
+        font-size: 14px;
+      }
+      .paper .note {
+        text-align: center;
+        font-weight: 700;
+        font-style: italic;
+        font-size: 12px;
+        margin-top: 8px;
+      }
+      .paper .scroll {
+        overflow-x: auto;
+      }
+      .paper.brand {
+        --paper-head: #d3e8f8;
+        --paper-empty: #eaf4fc;
+      }
+      .paper.brand th {
+        color: #1a5a9e;
+      }
+    </style>
+  </head>
+  <body>
+    <header data-chrome="volunteer" data-active=""></header>
+    <main class="page">
+      <div class="page-head no-print">
+        <div>
+          <h1>Download or print</h1>
+          <p>
+            The PDF follows the layout your congregation already knows. Pick the look that suits
+            you.
+          </p>
+        </div>
+        <div class="row">
+          <div class="tabs" role="group" aria-label="Style">
+            <button
+              aria-pressed="true"
+              id="s1"
+              style="min-height: 40px"
+              onclick="
+                document.getElementById('paper').classList.remove('brand');
+                this.setAttribute('aria-pressed', true);
+                s2.setAttribute('aria-pressed', false);
+              "
+            >
+              Church green
+            </button>
+            <button
+              aria-pressed="false"
+              id="s2"
+              style="min-height: 40px"
+              onclick="
+                document.getElementById('paper').classList.add('brand');
+                this.setAttribute('aria-pressed', true);
+                s1.setAttribute('aria-pressed', false);
+              "
+            >
+              Brand blue
+            </button>
+          </div>
+          <button class="btn primary"><i data-i="download"></i>Download PDF</button>
+          <button class="btn" onclick="window.print()"><i data-i="printer"></i>Print</button>
+        </div>
+      </div>
+      <div class="row no-print" style="margin-bottom: 16px">
+        <span class="chip info">Whole schedule</span>
+        <a href="#" class="small">Only my Sundays</a>
+        <span class="muted small"
+          >Tip: “Only my Sundays” gives each volunteer a one-page personal copy.</span
+        >
+      </div>
+
+      <article class="paper" id="paper" aria-label="Preview of the exported schedule">
+        <div class="head">
+          <img src="assets/lnhc-logo.png" alt="" />
+          <div>
+            <h2>Lipa New Hope Church Ministries International</h2>
+            <p>Religious Organization</p>
+          </div>
+        </div>
+        <h3>NOVEMBER 2026</h3>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Song Leader</th>
+                <th>Back Up</th>
+                <th>Lead Guitarist</th>
+                <th>Acoustic</th>
+                <th>Bass Guitarist</th>
+                <th>Keyboard</th>
+                <th>Drummer</th>
+                <th>Sound Tech</th>
+                <th>Easy Worship</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Sica</td>
+                <td>Cyril/Moises</td>
+                <td>Rden</td>
+                <td>Denver</td>
+                <td>Ferl</td>
+                <td>David</td>
+                <td>Ves/Miggy</td>
+                <td>Airon</td>
+                <td>Shay</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Denver</td>
+                <td>Mara/Abe</td>
+                <td>Natan</td>
+                <td class="empty"></td>
+                <td>Ferl</td>
+                <td>Sica</td>
+                <td>Jireh/Miggy</td>
+                <td>Airon</td>
+                <td>Oba</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>Cyril</td>
+                <td>Mara/Moises</td>
+                <td>Rden</td>
+                <td>Denver</td>
+                <td>Ferl</td>
+                <td>David</td>
+                <td>Jireh/Miggy</td>
+                <td>Kris</td>
+                <td>Oba</td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td>Noemi</td>
+                <td>Abe/Natan</td>
+                <td>Rden</td>
+                <td class="empty"></td>
+                <td>Denver</td>
+                <td>Sica</td>
+                <td>Jireh/Miggy</td>
+                <td>Kris</td>
+                <td>Jam</td>
+              </tr>
+              <tr>
+                <td>29</td>
+                <td>Mara</td>
+                <td>Natan/Sica</td>
+                <td>Rden</td>
+                <td>Ferl</td>
+                <td>Jonas</td>
+                <td>David</td>
+                <td>Jireh/Miggy</td>
+                <td>Airon</td>
+                <td>Shay</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">
+          Note: To all members: General cleaning will be conducted after the rehearsal. Thank you!
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

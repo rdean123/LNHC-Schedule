@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit schedule · LNHC Schedule Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockup.css" />
+    <script src="mockup.js" defer></script>
+    <style>
+      .bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .month {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .month strong {
+        font: 600 1.25rem var(--font-display);
+        color: var(--blue-deep);
+        min-width: 10.5rem;
+        text-align: center;
+      }
+      .edit {
+        display: block;
+      }
+      .edit .sheet {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 380px;
+        max-height: none;
+        overflow: auto;
+        z-index: 25;
+        border-radius: 0;
+        border-width: 0 0 0 1px;
+        box-shadow: var(--shadow-pop);
+      }
+      @media (min-width: 1101px) {
+        .shell .page {
+          padding-right: 404px;
+        }
+      }
+      .summary {
+        display: flex;
+        gap: 8px 16px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: var(--r-md) var(--r-md) 0 0;
+      }
+      .roster td {
+        min-width: 108px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .pill .x {
+        color: var(--muted);
+      }
+      .sheet .foot {
+        padding: 16px 24px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .cand .btn {
+        min-width: 76px;
+      }
+      @media (max-width: 1100px) {
+        .edit .sheet {
+          position: static;
+          width: auto;
+          max-height: none;
+          margin-top: 16px;
+        }
+      }
+      @media (max-width: 760px) {
+        .edit .sheet {
+          position: fixed;
+          left: 8px;
+          right: 8px;
+          top: auto;
+          bottom: 64px;
+          width: auto;
+          max-height: 62vh;
+          margin: 0;
+        }
+        .page {
+          padding-bottom: 160px;
+        }
+        .cand {
+          grid-template-columns: auto 1fr;
+        }
+        .cand .btn {
+          grid-column: 1 / -1;
+          width: 100%;
+        }
+        .sunday .slot {
+          min-height: 44px;
+        }
+        .sunday dl > div {
+          grid-template-columns: 6.5rem 1fr;
+        }
+        .bar .btn.primary {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="side" data-chrome="admin" data-active="sched"></aside>
+      <main>
+        <div class="page">
+          <div class="page-head">
+            <div>
+              <h1>Edit schedule</h1>
+              <p>
+                Select a position to choose who serves. Only qualified, available people are
+                offered.
+              </p>
+            </div>
+            <div class="row">
+              <button class="btn"><i data-i="copy"></i>Copy from November</button>
+              <a class="btn" href="schedule-month.html"><i data-i="eye"></i>Preview as volunteer</a>
+            </div>
+          </div>
+
+          <div class="bar">
+            <div class="row">
+              <div class="tabs" role="tablist" aria-label="Venue">
+                <button role="tab" aria-selected="true">LNHC</button>
+                <button role="tab" aria-selected="false">Tangway</button>
+                <button role="tab" aria-selected="false">Garcia/Rosario</button>
+              </div>
+              <div class="month" role="group" aria-label="Month">
+                <button class="btn quiet" aria-label="Previous month"><i data-i="left"></i></button>
+                <strong>December 2026</strong>
+                <button class="btn quiet" aria-label="Next month"><i data-i="right"></i></button>
+              </div>
+            </div>
+            <button class="btn primary"><i data-i="send"></i>Publish December</button>
+          </div>
+
+          <div class="edit">
+            <section class="panel" style="overflow: hidden" aria-label="December 2026 roster">
+              <div class="summary">
+                <span class="chip draft"><i data-i="pencil" data-c="sm"></i>Draft</span>
+                <span>4 Sundays</span>
+                <span class="chip published"><i data-i="check" data-c="sm"></i>0 conflicts</span>
+                <span class="muted small">2 positions left open (all positions are optional)</span>
+              </div>
+              <div class="table-wrap has-cards" id="tbl"></div>
+              <div class="sundays" id="cards" style="padding: 12px"></div>
+            </section>
+
+            <section class="sheet sheet-sticky" aria-labelledby="sh">
+              <div class="sheet-head">
+                <div>
+                  <h2 id="sh">Acoustic</h2>
+                  <p class="muted">LNHC · Sunday, Dec 13</p>
+                </div>
+                <button class="btn quiet sm" aria-label="Close panel"><i data-i="x"></i></button>
+              </div>
+              <div role="list" aria-label="Volunteers qualified for Acoustic">
+                <div class="cand" role="listitem">
+                  <span class="avatar">D</span>
+                  <div>
+                    <div class="nm">Denver</div>
+                    <div class="why ok">
+                      <i data-i="check" data-c="sm"></i>Available · last served Nov 15 (Acoustic)
+                    </div>
+                  </div>
+                  <button class="btn sm primary">Add</button>
+                </div>
+                <div class="cand blocked" role="listitem">
+                  <span class="avatar" style="background: var(--muted)">F</span>
+                  <div>
+                    <div class="nm">Ferl</div>
+                    <div class="why bad">
+                      <i data-i="ban" data-c="sm"></i>Already on Bass Guitarist at LNHC this Sunday.
+                      One person serves one position per Sunday.
+                    </div>
+                  </div>
+                  <button class="btn sm" disabled>Can’t add</button>
+                </div>
+                <div class="cand blocked" role="listitem">
+                  <span class="avatar" style="background: var(--muted)">J</span>
+                  <div>
+                    <div class="nm">Jonas</div>
+                    <div class="why bad">
+                      <i data-i="ban" data-c="sm"></i>Serving at Garcia/Rosario on Dec 13
+                      (Musicians). One person can’t serve at two venues on the same Sunday.
+                    </div>
+                  </div>
+                  <button class="btn sm" disabled>Can’t add</button>
+                </div>
+                <div class="cand blocked" role="listitem">
+                  <span class="avatar" style="background: var(--muted)">N</span>
+                  <div>
+                    <div class="nm">Natan</div>
+                    <div class="why bad">
+                      <i data-i="ban" data-c="sm"></i>Marked Away for Dec 13.
+                    </div>
+                  </div>
+                  <button class="btn sm" disabled>Can’t add</button>
+                </div>
+              </div>
+              <div class="foot">
+                <span class="small muted"
+                  >5 volunteers aren’t qualified for Acoustic.
+                  <a href="admin-volunteers.html">Change qualifications</a></span
+                >
+                <button class="btn">Leave empty</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+    <nav class="tabbar" aria-label="Main" data-tabbar="admin" data-active="sched"></nav>
+
+    <script>
+      /* Real LNHC December 2026 data from the church's schedule image. */
+      var cols = [
+        'Song Leader',
+        'Back Up',
+        'Lead Guitarist',
+        'Acoustic',
+        'Bass Guitarist',
+        'Keyboard',
+        'Drummer',
+        'Sound Tech',
+        'Easy Worship',
+      ];
+      var rows = [
+        [
+          '6',
+          ['Ever'],
+          ['Denver', 'Cyril'],
+          ['Rden'],
+          ['Natan'],
+          ['Ferl'],
+          ['Sica'],
+          ['Jireh', 'Miggy'],
+          ['Kris'],
+          ['Jam'],
+        ],
+        [
+          '13',
+          ['Cyril'],
+          ['Noemi', 'Sica'],
+          ['Rden'],
+          [],
+          ['Ferl'],
+          ['David'],
+          ['Jireh', 'Gab'],
+          ['Airon'],
+          ['Shay', 'Krisia'],
+        ],
+        [
+          '20',
+          ['Denver'],
+          ['Abe', 'Ever'],
+          ['Rden'],
+          [],
+          ['Natan'],
+          ['Sica'],
+          ['Ves', 'Miggy'],
+          ['Kris'],
+          ['Jam'],
+        ],
+        [
+          '27',
+          ['Sica'],
+          ['Cyril', 'Natan'],
+          ['Jonas'],
+          ['Denver'],
+          ['Ferl'],
+          ['David'],
+          ['Ves', 'Gab'],
+          ['Airon'],
+          ['Shay', 'Krisia'],
+        ],
+      ];
+      function slotHtml(day, ci, col, p) {
+        var sel = day === '13' && ci === 3;
+        if (!p.length) {
+          return (
+            '<div class="cell"><button class="slot' +
+            (sel ? ' selected' : '') +
+            '" aria-label="Choose someone for ' +
+            col +
+            '"' +
+            (sel ? ' aria-current="true"' : '') +
+            '><span class="add"><svg class="icon sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>Choose</span></button></div>'
+          );
+        }
+        var s = '<div class="cell">';
+        p.forEach(function (n) {
+          s +=
+            '<button class="slot filled" aria-label="' +
+            col +
+            ': ' +
+            n +
+            '. Change"><span class="pill"><span class="avatar">' +
+            n[0] +
+            '</span>' +
+            n +
+            '</span></button>';
+        });
+        s +=
+          '<button class="slot more" aria-label="Add another person to ' +
+          col +
+          '"><svg class="icon sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button></div>';
+        return s;
+      }
+      var h =
+        '<table class="roster"><caption class="sr-only">LNHC schedule draft, December 2026</caption><thead><tr><th scope="col">Sunday</th>' +
+        cols
+          .map(function (c) {
+            return '<th scope="col">' + c + '</th>';
+          })
+          .join('') +
+        '</tr></thead><tbody>';
+      var c = '';
+      rows.forEach(function (r) {
+        h += '<tr><th scope="row" class="date">Dec ' + r[0] + '<small>Sunday</small></th>';
+        c +=
+          '<article class="sunday"><header><span>Sunday, Dec ' +
+          r[0] +
+          '</span><span class="chip draft">Draft</span></header><dl>';
+        cols.forEach(function (col, i) {
+          var cell = slotHtml(r[0], i, col, r[i + 1]);
+          h += '<td>' + cell + '</td>';
+          c += '<div><dt>' + col + '</dt><dd>' + cell + '</dd></div>';
+        });
+        h += '</tr>';
+        c += '</dl></article>';
+      });
+      document.getElementById('tbl').innerHTML = h + '</tbody></table>';
+      document.getElementById('cards').innerHTML = c;
+    </script>
+  </body>
+</html>

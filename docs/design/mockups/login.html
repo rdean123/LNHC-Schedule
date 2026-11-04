@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in · LNHC Schedule</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockup.css" />
+    <script src="mockup.js" defer></script>
+  </head>
+  <body>
+    <div class="login">
+      <section class="hero-side cross-motif" aria-label="Lipa New Hope Church">
+        <img
+          class="seal"
+          src="assets/lnhc-logo.png"
+          alt="Lipa New Hope Church Ministries International seal"
+        />
+        <div>
+          <h1>Know where you serve this Sunday.</h1>
+          <p class="verse" style="margin-top: 24px">
+            The Gospel… the power of God unto salvation to all who believe.
+          </p>
+        </div>
+        <p class="small muted">Altamirano St., Mataas na Lupa, Lipa City · (043) 726 6667</p>
+      </section>
+
+      <main class="form-side">
+        <div class="card">
+          <p class="small muted no-print" style="margin-bottom: 8px">
+            Prototype: switch screen state
+          </p>
+          <div
+            class="tabs no-print"
+            role="tablist"
+            data-tabs
+            aria-label="Prototype states"
+            style="margin-bottom: 24px"
+          >
+            <button role="tab" id="t1" aria-selected="true" aria-controls="p1">Sign in</button>
+            <button role="tab" id="t2" aria-selected="false" aria-controls="p2">
+              Accept invite
+            </button>
+            <button role="tab" id="t3" aria-selected="false" aria-controls="p3">
+              Reset password
+            </button>
+          </div>
+
+          <section id="p1" role="tabpanel" aria-labelledby="t1">
+            <h2>Sign in</h2>
+            <p class="muted" style="margin: 8px 0 24px">
+              Use the email your worship leader invited.
+            </p>
+            <form onsubmit="return false;">
+              <div class="field">
+                <label for="email">Email</label>
+                <input
+                  class="input"
+                  id="email"
+                  type="email"
+                  autocomplete="username"
+                  placeholder="name@example.com"
+                />
+              </div>
+              <div class="field">
+                <label for="pw">Password</label>
+                <input class="input" id="pw" type="password" autocomplete="current-password" />
+              </div>
+              <button class="btn primary block" type="submit">Sign in</button>
+              <p class="small" style="margin-top: 16px">
+                <a href="#p3" onclick="document.getElementById('t3').click()"
+                  >Forgot your password?</a
+                >
+              </p>
+            </form>
+            <p class="callout info small" style="margin-top: 24px">
+              <i data-i="info" data-c="sm"></i>
+              <span
+                >Accounts are created by invitation. If you don’t have one yet, ask your worship
+                leader to invite you.</span
+              >
+            </p>
+          </section>
+
+          <section id="p2" role="tabpanel" aria-labelledby="t2" hidden>
+            <h2>Welcome, Rden</h2>
+            <p class="muted" style="margin: 8px 0 24px">
+              Choose a password to finish setting up your account.
+            </p>
+            <form onsubmit="return false;">
+              <div class="field">
+                <label for="np">New password</label>
+                <input class="input" id="np" type="password" autocomplete="new-password" />
+                <span class="hint">At least 10 characters. A short sentence works well.</span>
+              </div>
+              <div class="field">
+                <label for="np2">Confirm password</label>
+                <input class="input" id="np2" type="password" autocomplete="new-password" />
+              </div>
+              <button class="btn primary block" type="submit">Save password and sign in</button>
+            </form>
+          </section>
+
+          <section id="p3" role="tabpanel" aria-labelledby="t3" hidden>
+            <h2>Reset your password</h2>
+            <p class="muted" style="margin: 8px 0 24px">
+              We’ll email you a link to choose a new one.
+            </p>
+            <form onsubmit="return false;">
+              <div class="field">
+                <label for="rem">Email</label>
+                <input class="input" id="rem" type="email" autocomplete="username" />
+              </div>
+              <button class="btn primary block" type="submit">Send reset link</button>
+            </form>
+            <p class="callout ok small" style="margin-top: 24px">
+              <i data-i="check" data-c="sm"></i>
+              <span
+                ><strong>Check your email.</strong>If an account exists for that address, a reset
+                link is on its way.</span
+              >
+            </p>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

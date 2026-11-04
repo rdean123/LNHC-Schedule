@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schedules · LNHC Schedule</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockup.css" />
+    <script src="mockup.js" defer></script>
+    <style>
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .month {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .month strong {
+        font: 600 1.25rem var(--font-display);
+        color: var(--blue-deep);
+        min-width: 10.5rem;
+        text-align: center;
+      }
+      .note {
+        margin-top: 16px;
+        font-weight: 700;
+        font-style: italic;
+        text-align: center;
+        color: var(--blue-deep);
+      }
+      .empty {
+        text-align: center;
+        padding: 56px 24px;
+      }
+      .empty h2 {
+        margin-bottom: 8px;
+      }
+      .empty p {
+        margin: 0 auto 20px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header data-chrome="volunteer" data-active="schedule"></header>
+    <main class="page">
+      <div class="page-head">
+        <div>
+          <h1>Schedules</h1>
+          <p>Published rosters for every venue. Your Sundays are highlighted.</p>
+        </div>
+        <div class="row">
+          <a class="btn" href="print.html"><i data-i="download"></i>Download PDF</a>
+          <button class="btn" onclick="window.print()"><i data-i="printer"></i>Print</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="tabs" role="tablist" data-tabs aria-label="Venue">
+          <button role="tab" id="v1" aria-selected="true" aria-controls="pv1">LNHC</button>
+          <button role="tab" id="v2" aria-selected="false" aria-controls="pv2">Tangway</button>
+          <button role="tab" id="v3" aria-selected="false" aria-controls="pv3">
+            Garcia/Rosario
+          </button>
+        </div>
+        <div class="month" role="group" aria-label="Month">
+          <button class="btn quiet" aria-label="Previous month"><i data-i="left"></i></button>
+          <strong>November 2026</strong>
+          <button class="btn quiet" aria-label="Next month"><i data-i="right"></i></button>
+        </div>
+      </div>
+
+      <section id="pv1" role="tabpanel" aria-labelledby="v1" class="panel">
+        <div class="table-wrap has-cards" id="tbl"></div>
+        <div class="sundays" id="cards" style="padding: 12px"></div>
+        <p class="note" style="padding-bottom: 16px">
+          Note to all members: General cleaning will be conducted after the rehearsal. Thank you!
+        </p>
+      </section>
+
+      <section id="pv2" role="tabpanel" aria-labelledby="v2" class="panel empty" hidden>
+        <h2>No Tangway schedule for November yet</h2>
+        <p>
+          When the scheduler publishes it, it will appear here and you’ll see your own Sundays
+          highlighted.
+        </p>
+        <a
+          class="btn"
+          href="#"
+          onclick="
+            document.getElementById('v1').click();
+            return false;
+          "
+          >Back to LNHC</a
+        >
+      </section>
+
+      <section id="pv3" role="tabpanel" aria-labelledby="v3" class="panel empty" hidden>
+        <h2>No Garcia/Rosario schedule for November yet</h2>
+        <p>When the scheduler publishes it, it will appear here.</p>
+        <a
+          class="btn"
+          href="#"
+          onclick="
+            document.getElementById('v1').click();
+            return false;
+          "
+          >Back to LNHC</a
+        >
+      </section>
+    </main>
+    <nav class="tabbar" aria-label="Main" data-tabbar="volunteer" data-active="schedule"></nav>
+
+    <script>
+      /* Real LNHC November 2026 data from the church's schedule image. */
+      var cols = [
+        'Song Leader',
+        'Back Up',
+        'Lead Guitarist',
+        'Acoustic',
+        'Bass Guitarist',
+        'Keyboard',
+        'Drummer',
+        'Sound Tech',
+        'Easy Worship',
+      ];
+      var rows = [
+        [
+          '1',
+          ['Sica'],
+          ['Cyril', 'Moises'],
+          ['Rden'],
+          ['Denver'],
+          ['Ferl'],
+          ['David'],
+          ['Ves', 'Miggy'],
+          ['Airon'],
+          ['Shay'],
+        ],
+        [
+          '8',
+          ['Denver'],
+          ['Mara', 'Abe'],
+          ['Natan'],
+          [],
+          ['Ferl'],
+          ['Sica'],
+          ['Jireh', 'Miggy'],
+          ['Airon'],
+          ['Oba'],
+        ],
+        [
+          '15',
+          ['Cyril'],
+          ['Mara', 'Moises'],
+          ['Rden'],
+          ['Denver'],
+          ['Ferl'],
+          ['David'],
+          ['Jireh', 'Miggy'],
+          ['Kris'],
+          ['Oba'],
+        ],
+        [
+          '22',
+          ['Noemi'],
+          ['Abe', 'Natan'],
+          ['Rden'],
+          [],
+          ['Denver'],
+          ['Sica'],
+          ['Jireh', 'Miggy'],
+          ['Kris'],
+          ['Jam'],
+        ],
+        [
+          '29',
+          ['Mara'],
+          ['Natan', 'Sica'],
+          ['Rden'],
+          ['Ferl'],
+          ['Jonas'],
+          ['David'],
+          ['Jireh', 'Miggy'],
+          ['Airon'],
+          ['Shay'],
+        ],
+      ];
+      var ME = 'Rden';
+      function who(n) {
+        return n === ME ? '<span class="chip you">' + n + ' · You</span>' : n;
+      }
+      var h =
+        '<table class="roster"><caption class="sr-only">LNHC schedule, November 2026</caption><thead><tr><th scope="col">Sunday</th>' +
+        cols
+          .map(function (c) {
+            return '<th scope="col">' + c + '</th>';
+          })
+          .join('') +
+        '</tr></thead><tbody>';
+      var c = '';
+      rows.forEach(function (r) {
+        var mine = [].concat.apply([], r.slice(1)).indexOf(ME) > -1;
+        h +=
+          '<tr' +
+          (mine ? ' class="mine"' : '') +
+          '><th scope="row" class="date">Nov ' +
+          r[0] +
+          '<small>' +
+          (mine ? 'You’re serving' : 'Sunday') +
+          '</small></th>';
+        c +=
+          '<article class="sunday' +
+          (mine ? ' mine' : '') +
+          '"><header><span>Sunday, Nov ' +
+          r[0] +
+          '</span>' +
+          (mine ? '<span class="chip you">You’re serving</span>' : '') +
+          '</header><dl>';
+        cols.forEach(function (col, i) {
+          var p = r[i + 1];
+          h +=
+            '<td>' +
+            (p.length
+              ? '<div class="names">' +
+                p
+                  .map(function (n) {
+                    return '<span>' + who(n) + '</span>';
+                  })
+                  .join('') +
+                '</div>'
+              : '<span class="none" aria-label="No one assigned">—</span>') +
+            '</td>';
+          if (p.length)
+            c += '<div><dt>' + col + '</dt><dd>' + p.map(who).join(', ') + '</dd></div>';
+        });
+        h += '</tr>';
+        c += '</dl></article>';
+      });
+      document.getElementById('tbl').innerHTML = h + '</tbody></table>';
+      document.getElementById('cards').innerHTML = c;
+    </script>
+  </body>
+</html>
