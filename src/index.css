@@ -1,1 +1,127 @@
 @import 'tailwindcss';
+
+/* Fonts are served with the app (no third-party requests). */
+@import '@fontsource-variable/newsreader';
+@import '@fontsource/atkinson-hyperlegible-next/400.css';
+@import '@fontsource/atkinson-hyperlegible-next/500.css';
+@import '@fontsource/atkinson-hyperlegible-next/600.css';
+@import '@fontsource/atkinson-hyperlegible-next/700.css';
+
+/* Design tokens from DESIGN_SYSTEM.md. Light only, built from the logo's sky blue and cross. */
+@theme {
+  --font-display: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif;
+
+  --color-brand: #2271ba;
+  --color-brand-hover: #18508c;
+  --color-deep: #1a5a9e;
+  --color-wash: #eaf4fc;
+  --color-mist: #d3e8f8;
+  --color-sky-a: #eaf5fd;
+  --color-sky-b: #bfe0f6;
+
+  --color-page: #f4f9fd;
+  --color-surface: #ffffff;
+  --color-line: #d5e3f0;
+  --color-line-strong: #7c89a1;
+  --color-ink: #1b2638;
+  --color-muted: #4f5e73;
+  --color-placeholder: #62708a;
+
+  --color-success: #1f6b3e;
+  --color-success-50: #e6f4ea;
+  --color-danger: #b3261e;
+  --color-danger-50: #fcebea;
+  --color-warn: #8a4b00;
+  --color-warn-50: #fff0dc;
+  --color-draft: #444f66;
+  --color-draft-50: #e9edf3;
+
+  /* The logo's cross: a brand motif, never a status colour */
+  --color-cross: #d9453b;
+  --color-cross-light: #e8645a;
+
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  --radius-hero: 16px;
+
+  --shadow-pop: 0 2px 4px rgb(26 90 158 / 0.08), 0 12px 32px rgb(26 90 158 / 0.16);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    caret-color: var(--color-brand);
+    font-variant-numeric: tabular-nums;
+  }
+  ::selection {
+    background: var(--color-mist);
+    color: var(--color-ink);
+  }
+  * {
+    scrollbar-color: var(--color-line-strong) transparent;
+    scrollbar-width: thin;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    color: var(--color-deep);
+    font-weight: 600;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  a {
+    color: var(--color-brand);
+    text-underline-offset: 3px;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-draft-50), #f4f6fa, var(--color-draft-50));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: var(--radius-control);
+}
+
+/* Printing: only the roster, on white */
+@media print {
+  body {
+    background: #fff;
+  }
+}

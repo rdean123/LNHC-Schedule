@@ -1,47 +1,64 @@
-import { LOCATION_CONFIGS } from '../types/types';
-import { MemberManagement } from '../features/volunteers/MemberManagement';
-import { ScheduleTable } from '../features/scheduling/ScheduleTable';
-import { useEffect } from 'react';
-import { useScheduleStore } from '../features/scheduling/useScheduleStore';
-const lnhcbg = '/lnhcbg.jpg';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { AdminLayout } from '../components/layout/AdminLayout';
+import { VolunteerLayout } from '../components/layout/VolunteerLayout';
+import { ToastProvider } from '../components/ui/Toast';
+import { AuthProvider } from './AuthProvider';
+import { HomeRedirect, RequireAdmin, RequireAuth } from './guards';
+import { AdminActivityPage } from './pages/admin/AdminActivityPage';
+import { AdminAnnouncementsPage } from './pages/admin/AdminAnnouncementsPage';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminMorePage } from './pages/admin/AdminMorePage';
+import { AdminSchedulePage } from './pages/admin/AdminSchedulePage';
+import { AdminVolunteersPage } from './pages/admin/AdminVolunteersPage';
+import { AvailabilityPage } from './pages/AvailabilityPage';
+import { LoginPage } from './pages/LoginPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SchedulesPage } from './pages/SchedulesPage';
+import { SetPasswordPage } from './pages/SetPasswordPage';
+import { VolunteerHomePage } from './pages/VolunteerHomePage';
 
-function App() {
-  const fetchMembers = useScheduleStore((s) => s.fetchMembers);
-  const fetchSchedules = useScheduleStore((s) => s.fetchSchedules);
-
-  useEffect(() => {
-    fetchMembers();
-    fetchSchedules();
-  }, [fetchMembers, fetchSchedules]);
-
+export default function App() {
   return (
-    // Apply the image via inline style
-    <div
-      className="min-h-screen bg-cover bg-center bg-fixed"
-      style={{ backgroundImage: `url(${lnhcbg})` }}
-    >
-      <div className="min-h-screen bg-white/20 pb-12">
-        <header className="bg-white border-b border-gray-200 py-6 px-8 mb-8 shadow-sm">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-                Lipa New Hope Church PnW Scheduling Website
-              </h1>
-            </div>
-          </div>
-        </header>
+    <BrowserRouter>
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/accept-invite" element={<SetPasswordPage kind="invite" />} />
+            <Route path="/reset-password" element={<SetPasswordPage kind="reset" />} />
 
-        <main className="max-w-7xl mx-auto px-4 md:px-8">
-          <MemberManagement />
-          <div className="space-y-6">
-            <ScheduleTable config={LOCATION_CONFIGS.LNHC} />
-            <ScheduleTable config={LOCATION_CONFIGS.Tangway} />
-            <ScheduleTable config={LOCATION_CONFIGS.GarciaRosario} />
-          </div>
-        </main>
-      </div>
-    </div>
+            <Route element={<RequireAuth />}>
+              <Route element={<VolunteerLayout />}>
+                <Route
+                  path="/"
+                  element={
+                    <HomeRedirect>
+                      <VolunteerHomePage />
+                    </HomeRedirect>
+                  }
+                />
+                <Route path="/schedules" element={<SchedulesPage />} />
+                <Route path="/availability" element={<AvailabilityPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+              </Route>
+
+              <Route element={<RequireAdmin />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboardPage />} />
+                  <Route path="schedule" element={<AdminSchedulePage />} />
+                  <Route path="volunteers" element={<AdminVolunteersPage />} />
+                  <Route path="announcements" element={<AdminAnnouncementsPage />} />
+                  <Route path="activity" element={<AdminActivityPage />} />
+                  <Route path="more" element={<AdminMorePage />} />
+                </Route>
+              </Route>
+            </Route>
+
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </AuthProvider>
+      </ToastProvider>
+    </BrowserRouter>
   );
 }
-
-export default App;
