@@ -98,7 +98,7 @@ before(async () => {
 
 describe('migrations and reference data', () => {
   test('all migrations applied and reference data matches the church schedules', async () => {
-    assert.equal(migrationFiles.length, 7);
+    assert.equal(migrationFiles.length, 9);
     assert.equal(await count(`select count(*) n from public.ministries`), 1);
     assert.equal(await count(`select count(*) n from public.venues`), 3);
     assert.equal(await count(`select count(*) n from public.positions`), 12);

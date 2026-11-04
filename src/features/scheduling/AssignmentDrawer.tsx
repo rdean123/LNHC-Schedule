@@ -5,7 +5,9 @@ import { Button } from '../../components/ui/Button';
 import { Avatar } from '../../components/ui/Parts';
 import { ErrorBlock, LoadingBlock } from '../../components/ui/States';
 import { useToast } from '../../components/ui/toastContext';
+import { useSignedIn } from '../../app/auth';
 import { useAsync } from '../../hooks/useAsync';
+import { staffPaths } from '../../lib/roles';
 import { formatLongDate, formatShortDate } from '../../lib/format';
 import { assignVolunteer, getOrCreateService, suggestVolunteers } from './scheduleService';
 import type { VolunteerSuggestion } from '../../types/database';
@@ -39,6 +41,7 @@ export function AssignmentDrawer({
   onChanged,
 }: Props) {
   const toast = useToast();
+  const { role } = useSignedIn();
   const panelRef = useRef<HTMLElement>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
 
@@ -125,8 +128,8 @@ export function AssignmentDrawer({
           <div className="p-5 text-muted">
             <p className="font-semibold text-deep">No one is qualified for {positionLabel} yet.</p>
             <p className="mt-1">
-              Choose who can do it under <Link to="/admin/volunteers">Volunteers</Link>, then come
-              back.
+              Choose who can do it under <Link to={staffPaths(role).people}>Volunteers</Link>, then
+              come back.
             </p>
           </div>
         ) : (
@@ -201,7 +204,7 @@ export function AssignmentDrawer({
 
       <footer className="border-t border-line px-5 py-3 text-sm text-muted">
         Only people qualified for {positionLabel} are listed, longest-rested first.{' '}
-        <Link to="/admin/volunteers">Change qualifications</Link>
+        <Link to={staffPaths(role).people}>Change qualifications</Link>
       </footer>
     </aside>
   );

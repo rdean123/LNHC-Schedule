@@ -2,27 +2,27 @@ import { Ban, Check, Plus, Search, Send } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Button } from '../../../components/ui/Button';
-import { Chip } from '../../../components/ui/Chip';
-import { Dialog } from '../../../components/ui/Dialog';
-import { Field, TextInput, inputClasses } from '../../../components/ui/Field';
-import { Notice } from '../../../components/ui/Notice';
-import { Avatar, PageHead, Panel } from '../../../components/ui/Parts';
-import { EmptyState, ErrorBlock, LoadingBlock } from '../../../components/ui/States';
-import { useToast } from '../../../components/ui/toastContext';
-import { getAvailabilityForDates } from '../../../features/availability/availabilityService';
-import { inviteVolunteer } from '../../../features/administration/inviteService';
-import { listRoles, setRole } from '../../../features/administration/roleService';
-import { listPositions, listVenues } from '../../../features/ministries/catalogService';
-import { listServices } from '../../../features/scheduling/scheduleService';
+import { Button } from '../../components/ui/Button';
+import { Chip } from '../../components/ui/Chip';
+import { Dialog } from '../../components/ui/Dialog';
+import { Field, TextInput, inputClasses } from '../../components/ui/Field';
+import { Notice } from '../../components/ui/Notice';
+import { Avatar, PageHead, Panel } from '../../components/ui/Parts';
+import { EmptyState, ErrorBlock, LoadingBlock } from '../../components/ui/States';
+import { useToast } from '../../components/ui/toastContext';
+import { getAvailabilityForDates } from '../../features/availability/availabilityService';
+import { inviteVolunteer } from '../../features/administration/inviteService';
+import { listRoles, setRole } from '../../features/administration/roleService';
+import { listPositions, listVenues } from '../../features/ministries/catalogService';
+import { listServices } from '../../features/scheduling/scheduleService';
 import {
   createVolunteer,
   listVolunteerDetails,
   setQualifications,
   setVolunteerActive,
-} from '../../../features/volunteers/volunteerService';
-import type { VolunteerDetails } from '../../../features/volunteers/volunteerService';
-import { useAsync } from '../../../hooks/useAsync';
+} from '../../features/volunteers/volunteerService';
+import type { VolunteerDetails } from '../../features/volunteers/volunteerService';
+import { useAsync } from '../../hooks/useAsync';
 import {
   addDays,
   currentMonth,
@@ -32,11 +32,13 @@ import {
   shiftMonth,
   sundaysOfMonth,
   todayIso,
-} from '../../../lib/format';
-import type { PositionRow } from '../../../types/database';
+} from '../../lib/format';
+import { canChangeRoles, roleLabel } from '../../lib/roles';
+import type { AppRole, PositionRow } from '../../types/database';
+import { useSignedIn } from '../../app/auth';
 
 /** People who serve: add them, choose what each can do, see availability and history, and invite them. */
-export function AdminVolunteersPage() {
+export function VolunteersManager() {
   const [params, setParams] = useSearchParams();
   const toast = useToast();
   const [query, setQuery] = useState('');
@@ -189,7 +191,7 @@ function VolunteerPanel({
 }: {
   volunteer: VolunteerDetails;
   positions: PositionRow[];
-  role: 'admin' | 'volunteer' | undefined;
+  role: AppRole | undefined;
   onChanged: () => void;
   refreshing: boolean;
 }) {
@@ -197,7 +199,10 @@ function VolunteerPanel({
   const [chosen, setChosen] = useState<Set<string>>(() => new Set(volunteer.positionIds));
   const [saving, setSaving] = useState(false);
   const [inviting, setInviting] = useState(false);
-  const [confirm, setConfirm] = useState<'deactivate' | 'role' | null>(null);
+  const { role: myRole } = useSignedIn();
+  const mayChangeRoles = canChangeRoles(myRole);
+  const [confirm, setConfirm] = useState<'deactivate' | null>(null);
+  const [pendingRole, setPendingRole] = useState<AppRole | null>(null);
   const [working, setWorking] = useState(false);
 
   const saved = new Set(volunteer.positionIds);
@@ -257,21 +262,19 @@ function VolunteerPanel({
   }
 
   async function changeRole() {
-    if (!volunteer.user_id) return;
+    if (!volunteer.user_id || !pendingRole) return;
     setWorking(true);
     try {
-      await setRole(volunteer.user_id, role === 'admin' ? 'volunteer' : 'admin');
+      await setRole(volunteer.user_id, pendingRole);
       toast.success(
-        role === 'admin'
-          ? `${volunteer.display_name} is now a volunteer.`
-          : `${volunteer.display_name} is now an administrator.`,
+        `${volunteer.display_name} is now ${pendingRole === 'admin' ? 'an' : 'a'} ${roleLabel(pendingRole).toLowerCase()}.`,
       );
       onChanged();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'We couldn’t change that role.');
     } finally {
       setWorking(false);
-      setConfirm(null);
+      setPendingRole(null);
     }
   }
 
@@ -286,11 +289,7 @@ function VolunteerPanel({
             </h2>
             <p className="text-sm text-muted">
               {volunteer.email ?? 'No email yet'} ·{' '}
-              {volunteer.user_id
-                ? role === 'admin'
-                  ? 'Administrator'
-                  : 'Has an account'
-                : 'No account yet'}
+              {volunteer.user_id ? (role ? roleLabel(role) : 'Has an account') : 'No account yet'}
             </p>
           </div>
         </div>
@@ -301,10 +300,25 @@ function VolunteerPanel({
               Send invitation
             </Button>
           )}
-          {volunteer.user_id && (
-            <Button size="sm" onClick={() => setConfirm('role')}>
-              {role === 'admin' ? 'Make volunteer' : 'Make administrator'}
-            </Button>
+          {volunteer.user_id && mayChangeRoles && (
+            <div className="flex items-center gap-2">
+              <label htmlFor="role-select" className="text-sm font-semibold text-deep">
+                Role
+              </label>
+              <select
+                id="role-select"
+                value={role ?? 'volunteer'}
+                onChange={(e) => {
+                  const next = e.target.value as AppRole;
+                  if (next !== role) setPendingRole(next);
+                }}
+                className="min-h-9 rounded-control border border-line-strong bg-surface px-2 text-sm font-semibold text-ink"
+              >
+                <option value="volunteer">Volunteer</option>
+                <option value="scheduler">Schedule maker</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </div>
           )}
           <Button
             size="sm"
@@ -395,24 +409,26 @@ function VolunteerPanel({
         }
       />
       <Dialog
-        open={confirm === 'role'}
+        open={pendingRole !== null}
         alert
-        onClose={() => setConfirm(null)}
+        onClose={() => setPendingRole(null)}
         title={
-          role === 'admin'
-            ? `Make ${volunteer.display_name} a volunteer?`
-            : `Make ${volunteer.display_name} an administrator?`
+          pendingRole
+            ? `Make ${volunteer.display_name} ${pendingRole === 'admin' ? 'an' : 'a'} ${roleLabel(pendingRole).toLowerCase()}?`
+            : ''
         }
         description={
-          role === 'admin'
-            ? 'They will lose access to scheduling, volunteers and accounts.'
-            : 'Administrators can build and publish schedules, manage volunteers and change roles.'
+          pendingRole === 'admin'
+            ? 'Administrators can do everything a schedule maker can, and they are the only ones who can change roles.'
+            : pendingRole === 'scheduler'
+              ? 'Schedule makers can build and publish schedules, manage volunteers and post announcements. They can’t change roles.'
+              : 'They will no longer be able to edit schedules, volunteers or announcements.'
         }
         footer={
           <>
-            <Button onClick={() => setConfirm(null)}>Cancel</Button>
+            <Button onClick={() => setPendingRole(null)}>Cancel</Button>
             <Button variant="primary" busy={working} onClick={() => void changeRole()}>
-              {role === 'admin' ? 'Make volunteer' : 'Make administrator'}
+              Change role
             </Button>
           </>
         }

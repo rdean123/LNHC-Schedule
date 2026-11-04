@@ -22,7 +22,7 @@ import type { AnnouncementRow } from '../../../types/database';
 type Editing = { id: string | null; title: string; body: string; pinned: boolean };
 
 /** Messages volunteers see on their home screen under "From the church". */
-export function AdminAnnouncementsPage() {
+export function AnnouncementsPage() {
   const toast = useToast();
   const { data, loading, error, reload } = useAsync(listAnnouncements);
   const [editing, setEditing] = useState<Editing | null>(null);

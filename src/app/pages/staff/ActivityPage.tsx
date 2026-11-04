@@ -14,7 +14,7 @@ const when = (iso: string) =>
   });
 
 /** Who changed what, newest first. Read-only. */
-export function AdminActivityPage() {
+export function ActivityPage() {
   const { data, error, reload } = useAsync(getActivityLog);
 
   return (

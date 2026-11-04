@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "test:db": "node --test supabase/tests/database.test.mjs supabase/tests/scheduling.test.mjs",
+    "test:db": "node --test supabase/tests/database.test.mjs supabase/tests/scheduling.test.mjs supabase/tests/roles.test.mjs",
     "demo": "vite --mode demo",
     "build:demo": "vite build --mode demo",
     "test:unit": "node --test \"tests/unit/*.test.ts\"",

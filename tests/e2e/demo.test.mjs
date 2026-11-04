@@ -544,6 +544,184 @@ describe('on a phone', () => {
   });
 });
 
+describe('a schedule maker (Sica): volunteer screens with edit tools', () => {
+  test('looks like a volunteer: the same top bar and home, no sidebar, plus what needs attention', async () => {
+    const page = await openPage('/?as=scheduler');
+    await waitForText(page, 'Sunday, November 8');
+    const t = await text(page);
+    assert.match(t, /Hi Sica, you’re serving in 4 days\./);
+    assert.match(t, /Keyboard/);
+    assert.match(t, /Needs your attention/, 'the schedule maker sees what needs doing');
+    assert.match(t, /Your upcoming Sundays/);
+    const nav = await page.$$eval('header nav[aria-label=Main] a', (as) =>
+      as.map((a) => a.innerText.trim()),
+    );
+    assert.deepEqual(nav, ['Home', 'Schedules', 'Availability', 'People', 'More']);
+    assert.equal(await page.$('nav[aria-label=Administration]'), null, 'no administrator sidebar');
+    assert.doesNotMatch(t, /Administration/);
+    assert.match(page.url(), /localhost:\d+\/\?as=scheduler$/, 'stays on the volunteer home');
+    await shot(page, 'maker-home');
+    assert.deepEqual(page.errors, []);
+    await page.close();
+  });
+
+  test('the Schedules page gets an Edit schedule button; a volunteer’s does not', async () => {
+    const maker = await openPage('/schedules?as=scheduler&month=2026-11');
+    await waitForText(maker, 'Back Up');
+    assert.ok((await text(maker)).includes('Edit schedule'));
+    await maker.close();
+    const volunteer = await openPage('/schedules?as=rden&month=2026-11');
+    await waitForText(volunteer, 'Back Up');
+    assert.ok(!(await text(volunteer)).includes('Edit schedule'));
+    await volunteer.close();
+  });
+
+  test('can edit, fix a problem, and publish from the volunteer layout', async () => {
+    const page = await openPage('/schedules?as=scheduler&month=2027-01');
+    await waitForText(page, 'Edit schedule');
+    await click(page, 'Edit schedule');
+    await waitForText(page, '1 assignment needs attention before you can publish');
+    assert.match(page.url(), /\/schedules\/edit/);
+    assert.equal(await page.$('nav[aria-label=Administration]'), null);
+    await click(page, 'Publish January');
+    await waitForText(page, 'Fix 1 problem before publishing LNHC for January 17');
+    await page.evaluate(() => {
+      const row = [...document.querySelectorAll('table tbody tr')].find((tr) =>
+        tr.querySelector('th')?.innerText.includes('Jan 17'),
+      );
+      row.querySelector('button[aria-label="Remove Moises from Back Up"]').click();
+    });
+    await waitForText(page, 'Moises removed from Back Up.');
+    await page.waitForFunction(
+      () => !document.body.innerText.includes('needs attention before you can publish'),
+    );
+    await click(page, 'Publish January');
+    await waitForText(page, 'January 2027 published. Volunteers can see it now.');
+    await shot(page, 'maker-editor');
+    await click(page, 'Done editing');
+    await waitForText(page, 'Back Up');
+    assert.match(page.url(), /\/schedules\?/);
+    await page.close();
+  });
+
+  test('can manage people and what they can do, but is not offered role changes', async () => {
+    const page = await openPage('/people?as=scheduler');
+    await waitForText(page, 'What');
+    assert.equal(await page.$('#role-select'), null, 'no role control for a schedule maker');
+    await click(page, 'Add volunteer');
+    await waitForText(page, 'Add a volunteer');
+    await page.type('input[maxlength="40"]', 'Dan');
+    await page.evaluate(() =>
+      [...document.querySelectorAll('dialog button')]
+        .find((b) => b.textContent.trim() === 'Add volunteer')
+        ?.click(),
+    );
+    await waitForText(page, 'What Dan can do');
+    await click(page, 'Keyboard');
+    await click(page, 'Save');
+    await waitForText(page, 'Saved what Dan can do.');
+    await shot(page, 'maker-people');
+    await page.close();
+  });
+
+  test('can post an announcement and read the activity log', async () => {
+    const page = await openPage('/announcements?as=scheduler');
+    await waitForText(page, 'New announcement');
+    await click(page, 'New announcement');
+    await page.type('input[maxlength="120"]', 'Choir practice');
+    await page.type('textarea', 'Thursday at 7pm.');
+    await page.evaluate(() =>
+      [...document.querySelectorAll('dialog button')]
+        .find((b) => b.textContent.trim() === 'Publish')
+        ?.click(),
+    );
+    await waitForText(page, 'Announcement published.');
+    await page.goto(`${BASE}/activity`, { waitUntil: 'networkidle0' });
+    await waitForText(page, 'Activity log');
+    await page.close();
+  });
+
+  test('cannot open the administrator area', async () => {
+    const page = await openPage('/admin?as=scheduler');
+    await waitForText(page, 'Sunday, November 8');
+    assert.doesNotMatch(page.url(), /\/admin/);
+    await page.close();
+  });
+
+  test('on a phone: the tab bar has Home, Schedules, People, Availability, More, and fits', async () => {
+    const page = await openPage('/?as=scheduler', { mobile: true });
+    await waitForText(page, 'Sunday, November 8');
+    const tabs = await page.$$eval('nav[aria-label=Main] a', (as) =>
+      as.map((a) => a.innerText.trim()).filter(Boolean),
+    );
+    assert.deepEqual(tabs.slice(-5), ['Home', 'Schedules', 'People', 'Availability', 'More']);
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      ),
+      false,
+    );
+    await shot(page, 'mobile-maker-home');
+    await page.close();
+  });
+});
+
+describe('who can do what', () => {
+  test('a plain volunteer is sent home from every editing address', async () => {
+    for (const url of [
+      '/people',
+      '/schedules/edit',
+      '/announcements',
+      '/activity',
+      '/more',
+      '/admin/volunteers',
+    ]) {
+      const page = await openPage(`${url}?as=rden`);
+      await waitForText(page, 'Sunday, November 15');
+      assert.doesNotMatch(
+        page.url().replace('?as=rden', ''),
+        /people|edit|announcements|activity|more|admin/,
+        `${url} should redirect`,
+      );
+      await page.close();
+    }
+  });
+
+  test('an administrator changes a role after a plain explanation of what it allows', async () => {
+    const page = await openPage('/admin/volunteers?as=admin');
+    await waitForText(page, 'What');
+    await clickContaining(page, 'Rden');
+    await waitForText(page, 'What Rden can do');
+    await page.select('#role-select', 'scheduler');
+    await waitForText(page, 'Make Rden a schedule maker?');
+    await waitForText(page, 'They can’t change roles.');
+    await shot(page, 'admin-change-role');
+    await page.evaluate(() =>
+      [...document.querySelectorAll('dialog button')]
+        .find((b) => b.textContent.trim() === 'Change role')
+        ?.click(),
+    );
+    await waitForText(page, 'Rden is now a schedule maker.');
+    await page.close();
+  });
+
+  test('an administrator can make someone else an administrator', async () => {
+    const page = await openPage('/admin/volunteers?as=admin');
+    await waitForText(page, 'What');
+    await clickContaining(page, 'Rden');
+    await waitForText(page, 'What Rden can do');
+    await page.select('#role-select', 'admin');
+    await waitForText(page, 'Make Rden an administrator?');
+    await page.evaluate(() =>
+      [...document.querySelectorAll('dialog button')]
+        .find((b) => b.textContent.trim() === 'Change role')
+        ?.click(),
+    );
+    await waitForText(page, 'Rden is now an administrator.');
+    await page.close();
+  });
+});
+
 describe('accessibility (axe, WCAG 2.2 A and AA)', () => {
   const pages = [
     ['sign in', '/login', false],
@@ -554,6 +732,12 @@ describe('accessibility (axe, WCAG 2.2 A and AA)', () => {
     ['admin dashboard', '/admin?as=admin', false],
     ['admin schedule', '/admin/schedule?as=admin&month=2026-12', false],
     ['admin volunteers', '/admin/volunteers?as=admin', false],
+    ['admin volunteers with the role control', '/admin/volunteers?as=admin&volunteer=vol-1', false],
+    ['schedule maker home', '/?as=scheduler', false],
+    ['schedule maker editing a schedule', '/schedules/edit?as=scheduler&month=2026-12', false],
+    ['schedule maker people', '/people?as=scheduler', false],
+    ['schedule maker more', '/more?as=scheduler', false],
+    ['schedule maker home on a phone', '/?as=scheduler', true],
     ['admin announcements', '/admin/announcements?as=admin', false],
     ['volunteer home on a phone', '/?as=rden', true],
     ['admin schedule on a phone', '/admin/schedule?as=admin&month=2026-12', true],

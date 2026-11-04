@@ -1,6 +1,7 @@
 // PREVIEW MODE ONLY. Stands in for features/administration/roleService.ts.
 import type * as Real from '../features/administration/roleService';
 import { AppError } from '../lib/supabase/errors';
+import { currentPreviewUserId } from './authService';
 import { delay, record, roles } from './db';
 
 export const listRoles: typeof Real.listRoles = async () => {
@@ -10,6 +11,9 @@ export const listRoles: typeof Real.listRoles = async () => {
 
 export const setRole: typeof Real.setRole = async (userId, role) => {
   await delay(80);
+  if (roles.get(currentPreviewUserId() ?? '') !== 'admin') {
+    throw new AppError('You don’t have permission to change roles.');
+  }
   const admins = [...roles].filter(([, r]) => r === 'admin').map(([id]) => id);
   if (roles.get(userId) === 'admin' && role !== 'admin' && admins.length === 1) {
     throw new AppError(

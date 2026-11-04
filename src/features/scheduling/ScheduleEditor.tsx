@@ -1,17 +1,17 @@
 import { Copy, Eye, History, Plus, Send } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../../../components/ui/Button';
-import { buttonClasses } from '../../../components/ui/buttonStyles';
-import { Chip } from '../../../components/ui/Chip';
-import { Dialog } from '../../../components/ui/Dialog';
-import { Notice } from '../../../components/ui/Notice';
-import { MonthNav, PageHead, Panel, SegmentedChoice } from '../../../components/ui/Parts';
-import { ErrorBlock, LoadingBlock } from '../../../components/ui/States';
-import { useToast } from '../../../components/ui/toastContext';
-import { listVenuePositions, listVenues } from '../../../features/ministries/catalogService';
-import { AssignmentDrawer } from '../../../features/scheduling/AssignmentDrawer';
-import { EditablePerson, RosterView } from '../../../features/scheduling/RosterView';
+import { Button } from '../../components/ui/Button';
+import { buttonClasses } from '../../components/ui/buttonStyles';
+import { Chip } from '../../components/ui/Chip';
+import { Dialog } from '../../components/ui/Dialog';
+import { Notice } from '../../components/ui/Notice';
+import { MonthNav, PageHead, Panel, SegmentedChoice } from '../../components/ui/Parts';
+import { ErrorBlock, LoadingBlock } from '../../components/ui/States';
+import { useToast } from '../../components/ui/toastContext';
+import { listVenuePositions, listVenues } from '../../features/ministries/catalogService';
+import { AssignmentDrawer } from '../../features/scheduling/AssignmentDrawer';
+import { EditablePerson, RosterView } from '../../features/scheduling/RosterView';
 import {
   copySchedule,
   getAssignmentHistory,
@@ -20,9 +20,9 @@ import {
   publishServices,
   removeAssignment,
   unpublishServices,
-} from '../../../features/scheduling/scheduleService';
-import { useAsync } from '../../../hooks/useAsync';
-import { useVenueMonth } from '../../../hooks/useVenueMonth';
+} from '../../features/scheduling/scheduleService';
+import { useAsync } from '../../hooks/useAsync';
+import { useVenueMonth } from '../../hooks/useVenueMonth';
 import {
   addDays,
   formatFullDate,
@@ -31,15 +31,15 @@ import {
   monthTitle,
   shiftMonth,
   sundaysOfMonth,
-} from '../../../lib/format';
-import { buildRoster } from '../../../lib/roster';
-import type { RosterCell, RosterRow } from '../../../lib/roster';
-import type { CopyScheduleResult } from '../../../types/database';
+} from '../../lib/format';
+import { buildRoster } from '../../lib/roster';
+import type { RosterCell, RosterRow } from '../../lib/roster';
+import type { CopyScheduleResult } from '../../types/database';
 
 type Slot = { date: string; positionId: string; label: string };
 
 /** Fill positions with qualified, available people; copy, publish and revise a venue's month. */
-export function AdminSchedulePage() {
+export function ScheduleEditor({ finishLabel = 'Preview as volunteer' }: { finishLabel?: string }) {
   const toast = useToast();
   const venues = useAsync(listVenues);
   const { venueId, month, setVenueId, setMonth } = useVenueMonth(venues.data);
@@ -246,7 +246,7 @@ export function AdminSchedulePage() {
             className={buttonClasses('secondary')}
           >
             <Eye className="size-5" aria-hidden="true" />
-            Preview as volunteer
+            {finishLabel}
           </Link>
         )}
       </PageHead>

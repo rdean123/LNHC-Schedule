@@ -32,11 +32,13 @@ import {
 import { buildRoster, isServing, myPositions } from '../../lib/roster';
 import type { RosterRow } from '../../lib/roster';
 import { useSignedIn } from '../auth';
+import { StaffAttention } from '../../features/administration/StaffAttention';
+import { isStaff } from '../../lib/roles';
 
 type Serving = { date: string; venueId: string; venueName: string; row: RosterRow };
 
 export function VolunteerHomePage() {
-  const { volunteer } = useSignedIn();
+  const { volunteer, role } = useSignedIn();
   const toast = useToast();
   const [downloading, setDownloading] = useState(false);
   const myId = volunteer?.id ?? null;
@@ -204,6 +206,8 @@ export function VolunteerHomePage() {
           </>
         )}
       </section>
+
+      {isStaff(role) && <StaffAttention />}
 
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel aria-labelledby="upcoming-heading">

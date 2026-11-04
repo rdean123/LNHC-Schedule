@@ -21,14 +21,17 @@ import {
   positions,
 } from './db';
 
-const isAdmin = () => roles.get(currentPreviewUserId() ?? '') === 'admin';
+const isStaff = () => {
+  const role = roles.get(currentPreviewUserId() ?? '');
+  return role === 'admin' || role === 'scheduler';
+};
 const nameOf = (id: string) => volunteers.find((v) => v.id === id)?.display_name ?? 'Unknown';
 const positionName = (id: string) => positions.find((p) => p.id === id)?.name ?? 'Unknown';
 const venueName = (id: string) => venues.find((v) => v.id === id)?.name ?? 'Unknown';
 const isSundayDate = (iso: string) => parseIso(iso).getUTCDay() === 0;
 
 function requireAdmin() {
-  if (!isAdmin()) throw new AppError('Only administrators can do that.');
+  if (!isStaff()) throw new AppError('Only administrators and schedule makers can do that.');
 }
 
 function awayOn(volunteerId: string, date: string) {
@@ -134,7 +137,7 @@ export const listServices: typeof Real.listServices = async (filter = {}) => {
   await delay();
   const term = filter.volunteerName?.trim().toLowerCase();
   return services
-    .filter((s) => isAdmin() || s.status === 'published')
+    .filter((s) => isStaff() || s.status === 'published')
     .filter((s) => !filter.venueId || s.venue_id === filter.venueId)
     .filter((s) => !filter.from || s.service_date >= filter.from)
     .filter((s) => !filter.to || s.service_date <= filter.to)
@@ -258,13 +261,13 @@ export const unpublishServices: typeof Real.unpublishServices = async (venueId, 
 
 export const getScheduleProblems: typeof Real.getScheduleProblems = async (from, to, venueId) => {
   await delay(80);
-  return isAdmin() ? problemsFor(from, to, venueId) : [];
+  return isStaff() ? problemsFor(from, to, venueId) : [];
 };
 
 export const suggestVolunteers: typeof Real.suggestVolunteers = async (serviceId, positionId) => {
   await delay(80);
   const s = services.find((x) => x.id === serviceId);
-  if (!isAdmin() || !s) return [];
+  if (!isStaff() || !s) return [];
   if (!venuePositionsData.some((vp) => vp.venue_id === s.venue_id && vp.position_id === positionId))
     return [];
 
@@ -405,7 +408,7 @@ export const copySchedule: typeof Real.copySchedule = async (
 
 export const getAssignmentHistory: typeof Real.getAssignmentHistory = async (serviceId) => {
   await delay(80);
-  if (!isAdmin()) return [];
+  if (!isStaff()) return [];
   return history
     .filter((h) => h.service_id === serviceId)
     .map((h) => ({

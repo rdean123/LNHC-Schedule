@@ -22,7 +22,7 @@ type Fk<Column extends string, Table extends string, OneToOne extends boolean = 
   referencedColumns: ['id'];
 };
 
-export type AppRole = 'admin' | 'volunteer';
+export type AppRole = 'admin' | 'scheduler' | 'volunteer';
 export type PublishStatus = 'draft' | 'published';
 
 export type UserRoleRow = {
@@ -216,6 +216,7 @@ export type Database = {
     Views: Record<string, never>;
     Functions: {
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       current_volunteer_id: { Args: Record<PropertyKey, never>; Returns: string | null };
       schedule_problems: {
         Args: { p_from: string; p_to: string; p_venue_id?: string };

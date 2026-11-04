@@ -1,20 +1,25 @@
 import { ChevronRight, History, LogOut, Megaphone, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PageHead, Panel } from '../../../components/ui/Parts';
+import { roleLabel, staffPaths } from '../../../lib/roles';
 import { useSignedIn } from '../../auth';
 
-const rows = [
-  { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
-  { to: '/admin/activity', label: 'Activity log', icon: History },
-  { to: '/schedules', label: 'See schedules as a volunteer', icon: User },
-];
+/** The rest of the menu for phones and narrow windows, for administrators and schedule makers. */
+export function MorePage() {
+  const { logOut, email, role } = useSignedIn();
+  const paths = staffPaths(role);
+  const rows = [
+    { to: paths.announcements, label: 'Announcements', icon: Megaphone },
+    { to: paths.activity, label: 'Activity log', icon: History },
+    { to: '/profile', label: 'Your profile', icon: User },
+  ];
 
-/** The rest of the administrator menu, for phones where the sidebar is hidden. */
-export function AdminMorePage() {
-  const { logOut, email } = useSignedIn();
   return (
     <div>
-      <PageHead title="More" subtitle={`Signed in as ${email}`} />
+      <PageHead
+        title="More"
+        subtitle={`Signed in as ${email} (${roleLabel(role).toLowerCase()})`}
+      />
       <Panel className="overflow-hidden">
         <ul className="m-0 list-none p-0">
           {rows.map(({ to, label, icon: Icon }) => (

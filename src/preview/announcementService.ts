@@ -4,7 +4,10 @@ import { AppError } from '../lib/supabase/errors';
 import { currentPreviewUserId } from './authService';
 import { announcements, delay, record, roles, uid } from './db';
 
-const isAdmin = () => roles.get(currentPreviewUserId() ?? '') === 'admin';
+const isStaff = () => {
+  const role = roles.get(currentPreviewUserId() ?? '');
+  return role === 'admin' || role === 'scheduler';
+};
 
 function check(input: Real.AnnouncementInput) {
   if (!input.title.trim()) throw new AppError('Give the announcement a title.');
@@ -14,7 +17,7 @@ function check(input: Real.AnnouncementInput) {
 export const listAnnouncements: typeof Real.listAnnouncements = async () => {
   await delay();
   return announcements
-    .filter((a) => isAdmin() || (a.published_at && a.published_at <= new Date().toISOString()))
+    .filter((a) => isStaff() || (a.published_at && a.published_at <= new Date().toISOString()))
     .map((a) => ({ ...a }))
     .sort(
       (a, b) =>

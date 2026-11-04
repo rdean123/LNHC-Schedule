@@ -37,6 +37,7 @@ export const uid = (prefix: string) => `${prefix}-${counter++}`;
 
 export const ADMIN_USER_ID = 'user-admin';
 export const RDEN_USER_ID = 'user-rden';
+export const SCHEDULER_USER_ID = 'user-scheduler';
 
 // ---- Reference data ---------------------------------------------------------------------------
 
@@ -246,6 +247,7 @@ export const announcements: AnnouncementRow[] = [];
 export const roles = new Map<string, AppRole>([
   [ADMIN_USER_ID, 'admin'],
   [RDEN_USER_ID, 'volunteer'],
+  [SCHEDULER_USER_ID, 'scheduler'],
 ]);
 export const history: HistoryRow[] = [];
 export const log: LogRow[] = [];
@@ -258,7 +260,7 @@ function ensureVolunteer(name: string): VolunteerRow {
     v = {
       id: uid('vol'),
       display_name: name,
-      user_id: name === 'Rden' ? RDEN_USER_ID : null,
+      user_id: name === 'Rden' ? RDEN_USER_ID : name === 'Sica' ? SCHEDULER_USER_ID : null,
       is_active: true,
       created_at: NOW,
       updated_at: NOW,

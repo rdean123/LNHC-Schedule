@@ -186,7 +186,8 @@ export function LoginPage() {
 
           {import.meta.env.MODE === 'demo' && (
             <p className="mt-6 rounded-panel border border-line bg-surface p-3 text-sm text-muted">
-              Preview accounts (any password): <strong>rden@lnhc.example</strong> (volunteer) or{' '}
+              Preview accounts (any password): <strong>rden@lnhc.example</strong> (volunteer),{' '}
+              <strong>scheduler@lnhc.example</strong> (schedule maker) or{' '}
               <strong>admin@lnhc.example</strong> (administrator).
             </p>
           )}

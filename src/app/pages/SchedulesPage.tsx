@@ -14,10 +14,12 @@ import { VENUE_NOTES } from '../../lib/pdf';
 import { buildRoster, isServing } from '../../lib/roster';
 import { useSignedIn } from '../auth';
 import { buttonClasses } from '../../components/ui/buttonStyles';
+import { isStaff, staffPaths } from '../../lib/roles';
+import { Pencil } from 'lucide-react';
 
 /** Published rosters for every venue, with the signed-in volunteer's Sundays highlighted. */
 export function SchedulesPage() {
-  const { volunteer } = useSignedIn();
+  const { volunteer, role } = useSignedIn();
   const myId = volunteer?.id ?? null;
 
   const venues = useAsync(listVenues);
@@ -48,6 +50,15 @@ export function SchedulesPage() {
         title="Schedules"
         subtitle="Published rosters for every venue. Your Sundays are highlighted."
       >
+        {isStaff(role) && venueId && (
+          <Link
+            to={`${staffPaths(role).scheduleEditor}?venue=${venueId}&month=${month}`}
+            className={buttonClasses('primary')}
+          >
+            <Pencil className="size-5" aria-hidden="true" />
+            Edit schedule
+          </Link>
+        )}
         {venue && roster.data && (
           <ExportButtons
             venueName={venue.name}

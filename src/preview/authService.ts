@@ -4,17 +4,18 @@ import type * as Real from '../features/authentication/authService';
 import { AppError } from '../lib/supabase/errors';
 import { validateEmail, validatePassword } from '../lib/validation/auth';
 import type { AppRole } from '../types/database';
-import { ADMIN_USER_ID, RDEN_USER_ID, delay, roles } from './db';
+import { ADMIN_USER_ID, RDEN_USER_ID, SCHEDULER_USER_ID, delay, roles } from './db';
 
 const KEY = 'lnhc-preview-user';
 const accounts: Record<string, { id: string; email: string }> = {
   admin: { id: ADMIN_USER_ID, email: 'admin@lnhc.example' },
   rden: { id: RDEN_USER_ID, email: 'rden@lnhc.example' },
+  scheduler: { id: SCHEDULER_USER_ID, email: 'scheduler@lnhc.example' },
 };
 
 const listeners = new Set<(session: Session | null) => void>();
 
-/** `?as=admin` or `?as=rden` signs in directly (handy for demos and automated checks). */
+/** `?as=admin`, `?as=scheduler` or `?as=rden` signs in directly (handy for demos and automated checks). */
 function readInitial(): string | null {
   try {
     const asParam = new URLSearchParams(window.location.search).get('as');

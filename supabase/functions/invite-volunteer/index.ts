@@ -6,8 +6,8 @@
 // Request:  POST { "volunteer_id": "<uuid>", "redirect_to": "https://.../accept-invite" }
 // Response: 200 { "ok": true } or { "error": "<plain-language message>" }
 //
-// Safety: the caller must be signed in AND be an administrator (checked with the caller's own
-// token through the is_admin() database function). The volunteer's email comes from the
+// Safety: the caller must be signed in AND be an administrator or schedule maker (checked with the
+// caller's own token through the is_staff() database function). The volunteer's email comes from the
 // database, never from the request, so a request can't invite an arbitrary address.
 //
 // NOT YET DEPLOYED OR TESTED against a live project. SUPABASE_URL, SUPABASE_ANON_KEY and
@@ -75,11 +75,15 @@ Deno.serve(async (req) => {
   if (userError || !userData.user)
     return reply(401, { error: 'Your session has expired. Sign in again.' }, origin);
 
-  const { data: isAdmin, error: roleError } = await asCaller.rpc('is_admin');
+  const { data: isStaff, error: roleError } = await asCaller.rpc('is_staff');
   if (roleError)
     return reply(500, { error: 'Could not check your permissions. Try again.' }, origin);
-  if (isAdmin !== true)
-    return reply(403, { error: 'Only administrators can invite volunteers.' }, origin);
+  if (isStaff !== true)
+    return reply(
+      403,
+      { error: 'Only administrators and schedule makers can invite volunteers.' },
+      origin,
+    );
 
   // Read through the caller's token so row level security still applies.
   const { data: volunteer, error: volunteerError } = await asCaller

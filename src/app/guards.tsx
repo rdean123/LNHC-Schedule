@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Notice } from '../components/ui/Notice';
+import { isStaff } from '../lib/roles';
 import { useAuth } from './auth';
 
 function FullPage({ children }: { children: React.ReactNode }) {
@@ -44,7 +45,14 @@ export function RequireAdmin() {
   return <Outlet />;
 }
 
-/** Administrators land on their dashboard; volunteers on their home. */
+/** Schedule makers (and administrators) can edit schedules, people and announcements. */
+export function RequireStaff() {
+  const { state } = useAuth();
+  if (state.status === 'signedIn' && !isStaff(state.role)) return <Navigate to="/" replace />;
+  return <Outlet />;
+}
+
+/** Administrators land on their dashboard; schedule makers and volunteers on their home. */
 export function HomeRedirect({ children }: { children: React.ReactNode }) {
   const { state } = useAuth();
   if (state.status === 'signedIn' && state.role === 'admin')

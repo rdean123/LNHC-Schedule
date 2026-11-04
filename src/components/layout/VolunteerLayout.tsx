@@ -1,24 +1,56 @@
-import { CalendarCheck, Calendar, House, LogOut, User } from 'lucide-react';
+import { Calendar, CalendarCheck, House, LogOut, Menu, User, Users } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useSignedIn } from '../../app/auth';
+import { isStaff, staffPaths } from '../../lib/roles';
 import { Avatar } from '../ui/Parts';
 import { Brand, DemoBanner } from './Brand';
 
-const links = [
-  { to: '/', label: 'Home', short: 'Home', icon: House, end: true },
-  { to: '/schedules', label: 'Schedules', short: 'Schedules', icon: Calendar, end: false },
-  {
-    to: '/availability',
-    label: 'My availability',
-    short: 'Availability',
-    icon: CalendarCheck,
-    end: false,
-  },
-];
+type Item = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end?: boolean;
+  /** Extra classes that decide where on the screen the link appears. */
+  show?: string;
+};
 
+/**
+ * The volunteer layout. A schedule maker sees the same layout with a few extra items
+ * (People, Announcements, Activity log); the editing tools appear on the screens themselves.
+ */
 export function VolunteerLayout() {
   const { volunteer, email, role, logOut } = useSignedIn();
   const name = volunteer?.displayName ?? email;
+  const staff = isStaff(role);
+  const paths = staffPaths(role);
+
+  const desktop: Item[] = [
+    { to: '/', label: 'Home', icon: House, end: true },
+    { to: '/schedules', label: 'Schedules', icon: Calendar },
+    { to: '/availability', label: staff ? 'Availability' : 'My availability', icon: CalendarCheck },
+    ...(staff
+      ? [
+          { to: paths.people, label: 'People', icon: Users },
+          { to: '/more', label: 'More', icon: Menu },
+        ]
+      : []),
+  ];
+
+  const phone: Item[] = staff
+    ? [
+        { to: '/', label: 'Home', icon: House, end: true },
+        { to: '/schedules', label: 'Schedules', icon: Calendar },
+        { to: paths.people, label: 'People', icon: Users },
+        { to: '/availability', label: 'Availability', icon: CalendarCheck },
+        { to: '/more', label: 'More', icon: Menu },
+      ]
+    : [
+        { to: '/', label: 'Home', icon: House, end: true },
+        { to: '/schedules', label: 'Schedules', icon: Calendar },
+        { to: '/availability', label: 'Availability', icon: CalendarCheck },
+        { to: '/profile', label: 'Profile', icon: User },
+      ];
 
   return (
     <div className="min-h-screen">
@@ -32,14 +64,14 @@ export function VolunteerLayout() {
       <header className="sticky top-0 z-20 border-b border-line bg-surface print:hidden">
         <div className="mx-auto flex min-h-16 max-w-6xl items-center gap-5 px-4 md:px-6">
           <Brand to="/" subtitle="Lipa New Hope Church" className="text-deep" />
-          <nav aria-label="Main" className="ml-4 hidden gap-1 md:flex">
-            {links.map(({ to, label, icon: Icon, end }) => (
+          <nav aria-label="Main" className="ml-2 hidden gap-1 md:flex">
+            {desktop.map(({ to, label, icon: Icon, end, show }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  `flex min-h-11 items-center gap-2 rounded-control px-3 font-semibold no-underline ${
+                  `flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-control px-3 font-semibold no-underline ${show ?? ''} ${
                     isActive
                       ? 'bg-wash text-deep shadow-[inset_0_-3px_0_var(--color-brand)]'
                       : 'text-muted hover:bg-wash hover:text-deep'
@@ -62,13 +94,15 @@ export function VolunteerLayout() {
             )}
             <NavLink to="/profile" className="flex items-center gap-2 text-ink no-underline">
               <Avatar name={name} />
-              <span className="sr-only md:hidden">Your profile, {name}</span>
-              <span className="hidden md:inline">{name}</span>
+              <span className={`sr-only ${staff ? '2xl:hidden' : 'lg:hidden'}`}>
+                Your profile, {name}
+              </span>
+              <span className={`hidden ${staff ? '2xl:inline' : 'lg:inline'}`}>{name}</span>
             </NavLink>
             <button
               type="button"
               onClick={() => void logOut()}
-              className="hidden min-h-9 items-center gap-2 rounded-control px-3 text-sm font-semibold text-brand hover:bg-wash md:flex"
+              className={`hidden min-h-9 items-center gap-2 rounded-control px-3 whitespace-nowrap text-sm font-semibold text-brand hover:bg-wash ${staff ? 'lg:flex' : 'md:flex'}`}
             >
               <LogOut className="size-4" aria-hidden="true" />
               Log out
@@ -88,10 +122,7 @@ export function VolunteerLayout() {
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-30 grid grid-flow-col auto-cols-fr border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
       >
-        {[
-          ...links,
-          { to: '/profile', label: 'Profile', short: 'Profile', icon: User, end: false },
-        ].map(({ to, short, icon: Icon, end }) => (
+        {phone.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
@@ -103,7 +134,7 @@ export function VolunteerLayout() {
             }
           >
             <Icon className="size-5" aria-hidden="true" />
-            {short}
+            {label}
           </NavLink>
         ))}
       </nav>
