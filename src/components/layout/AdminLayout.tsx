@@ -4,6 +4,7 @@ import { useScrolled } from '../../hooks/useScrolled';
 import { useSignedIn } from '../../app/auth';
 import { Avatar } from '../ui/Parts';
 import { Brand, DemoBanner } from './Brand';
+import { ViewSwitcher } from './ViewSwitcher';
 
 const links = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -53,7 +54,8 @@ export function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto flex items-center gap-3 border-t border-line px-2 py-3 text-sm">
+        <ViewSwitcher className="mt-auto px-2" />
+        <div className="flex items-center gap-3 border-t border-line px-2 py-3 text-sm">
           <Avatar name={email} />
           <div className="min-w-0">
             <p className="truncate font-semibold text-ink">{email}</p>
@@ -77,6 +79,7 @@ export function AdminLayout() {
           }`}
         >
           <Brand to="/admin" subtitle="Administrator" className="text-deep" />
+          <ViewSwitcher className="ml-auto" />
         </header>
         <main
           id="main"

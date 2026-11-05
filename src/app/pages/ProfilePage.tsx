@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
+import { ViewSwitcher } from '../../components/layout/ViewSwitcher';
 import { Button } from '../../components/ui/Button';
 import { Field, TextInput } from '../../components/ui/Field';
 import { Notice } from '../../components/ui/Notice';
@@ -10,11 +11,12 @@ import { useToast } from '../../components/ui/toastContext';
 import { updateMyContact } from '../../features/volunteers/volunteerService';
 import { getMyContact } from '../../features/volunteers/myProfileService';
 import { useAsync } from '../../hooks/useAsync';
+import { roleLabel } from '../../lib/roles';
 import { useSignedIn } from '../auth';
 
 /** Your name on the schedule, your contact details, and sign out. Email changes go through an administrator. */
 export function ProfilePage() {
-  const { volunteer, email, role, logOut } = useSignedIn();
+  const { volunteer, email, realRole, logOut } = useSignedIn();
   const toast = useToast();
   const myId = volunteer?.id ?? null;
 
@@ -112,9 +114,8 @@ export function ProfilePage() {
           <div className="flex flex-wrap items-center justify-between gap-3 p-5 md:p-6">
             <div>
               <p className="font-semibold text-deep">Signed in as {email}</p>
-              <p className="text-sm text-muted">
-                {role === 'admin' ? 'Administrator' : 'Volunteer'}
-              </p>
+              <p className="text-sm text-muted">{roleLabel(realRole)}</p>
+              <ViewSwitcher className="mt-2" />
             </div>
             <Button onClick={() => void logOut()}>
               <LogOut className="size-5" aria-hidden="true" />

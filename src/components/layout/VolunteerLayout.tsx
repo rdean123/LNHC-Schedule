@@ -6,6 +6,7 @@ import { useSignedIn } from '../../app/auth';
 import { isStaff, staffPaths } from '../../lib/roles';
 import { Avatar } from '../ui/Parts';
 import { Brand, DemoBanner } from './Brand';
+import { ViewAsBanner, ViewSwitcher } from './ViewSwitcher';
 
 type Item = {
   to: string;
@@ -64,6 +65,7 @@ export function VolunteerLayout() {
         Skip to content
       </a>
       <DemoBanner />
+      <ViewAsBanner />
       <header
         className={`sticky top-0 z-20 border-b border-line bg-surface transition-shadow duration-200 print:hidden ${
           scrolled ? 'shadow-[0_10px_24px_-16px_rgb(26_90_158/0.5)]' : ''
@@ -91,14 +93,7 @@ export function VolunteerLayout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
-            {role === 'admin' && (
-              <NavLink
-                to="/admin"
-                className="hidden min-h-11 items-center rounded-control px-3 font-semibold text-brand no-underline hover:bg-wash md:flex"
-              >
-                Administration
-              </NavLink>
-            )}
+            <ViewSwitcher className="hidden lg:flex" />
             <NavLink to="/profile" className="flex items-center gap-2 text-ink no-underline">
               <Avatar name={name} />
               <span className={`sr-only ${staff ? '2xl:hidden' : 'lg:hidden'}`}>
