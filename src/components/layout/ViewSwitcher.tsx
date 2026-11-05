@@ -26,7 +26,7 @@ export function ViewSwitcher({ className = '' }: { className?: string }) {
       className={`flex min-w-0 items-center gap-2 text-sm font-semibold text-muted ${className}`}
     >
       <Eye className="size-4 shrink-0" aria-hidden="true" />
-      <span className="sr-only whitespace-nowrap sm:not-sr-only">View as</span>
+      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">View as</span>
       <select
         value={role}
         onChange={(e) => change(e.target.value as AppRole)}

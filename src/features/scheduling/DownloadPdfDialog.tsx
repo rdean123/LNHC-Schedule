@@ -18,14 +18,14 @@ type Props = {
   defaultMonth: string;
 };
 
-/** Choose which months to put in the PDF: up to three, one page each. */
+/** Choose which months to put in the PDF: up to three, in one table. */
 export function DownloadPdfDialog({ open, onClose, venue, defaultMonth }: Props) {
   return (
     <Dialog
       open={open}
       onClose={onClose}
       title="Download PDF"
-      description={`Choose the months to put in the PDF for ${venue.name}. A PDF holds up to ${MAX_PDF_MONTHS} months, one page each.`}
+      description={`Choose the months to put in the PDF for ${venue.name}. A PDF holds up to ${MAX_PDF_MONTHS} months, together in one table.`}
     >
       <PdfForm venue={venue} defaultMonth={defaultMonth} onClose={onClose} />
     </Dialog>

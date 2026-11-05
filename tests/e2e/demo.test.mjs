@@ -790,7 +790,7 @@ describe('downloading a PDF', () => {
     await page.close();
   });
 
-  test('two months, one page each, in one file', async () => {
+  test('two months share one table in one file', async () => {
     const page = await openPage('/schedules?as=rden&month=2026-11');
     await waitForText(page, 'Back Up');
     const pdf = await capturePdf(page, async () => {
@@ -803,7 +803,7 @@ describe('downloading a PDF', () => {
     });
     assert.ok(pdf);
     assert.equal(pdf.file, 'LNHC-LNHC-2026-11-to-2026-12.pdf');
-    assert.equal(pdf.pages, 2);
+    assert.ok(pdf.pages <= 2, 'two months fit on one or two pages, not one page each by force');
     await waitForText(page, 'PDF downloaded for November 2026 and December 2026.');
     await page.close();
   });

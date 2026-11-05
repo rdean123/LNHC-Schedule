@@ -14,8 +14,8 @@ export function Brand({
     <Link to={to} className={`flex items-center gap-3 no-underline ${className}`}>
       <img src="/lnhc-logo.png" alt="" width="40" height="40" className="size-10 rounded-full" />
       <span className="whitespace-nowrap leading-none">
-        <span className="font-display text-xl font-semibold">LNHC Schedule</span>
-        <span className="mt-0.5 block text-xs text-muted">{subtitle}</span>
+        <span className="block font-display text-xl leading-none font-semibold">LNHC Schedule</span>
+        <span className="mt-0.5 block text-xs leading-none text-muted">{subtitle}</span>
       </span>
     </Link>
   );

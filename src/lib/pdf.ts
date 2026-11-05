@@ -1,3 +1,4 @@
+import type { RowInput } from 'jspdf-autotable';
 import { monthTitle, parseIso } from './format.ts';
 import type { RosterRow } from './roster.ts';
 
@@ -48,8 +49,8 @@ async function loadLogo(): Promise<string | null> {
 /**
  * Download rosters as a PDF in the layout the congregation already knows: the church name, a
  * month heading, a gridded table with a green header, green cells for empty positions, and the
- * venue's note. Each month is its own landscape page, up to MAX_PDF_MONTHS. "blue" swaps the
- * green for the app's light blue.
+ * venue's note. Up to MAX_PDF_MONTHS months share one table on landscape pages, a labelled row
+ * starting each month. "blue" swaps the green for the app's light blue.
  */
 export async function downloadRosterPdf(options: {
   venueName: string;
@@ -74,50 +75,68 @@ export async function downloadRosterPdf(options: {
   const logo = await loadLogo();
   const note = VENUE_NOTES[venueName];
 
-  months.forEach(({ month, rows }, index) => {
-    if (index > 0) doc.addPage();
+  const first = months[0].month;
+  const last = months[months.length - 1].month;
+  const title =
+    months.length > 1 ? `${monthTitle(first)} – ${monthTitle(last)}` : monthTitle(first);
 
-    if (logo) doc.addImage(logo, 'PNG', 40, 28, 54, 54);
-    doc.setFont('helvetica', 'bold').setFontSize(18);
-    doc.text('Lipa New Hope Church Ministries International', logo ? 106 : 40, 52);
-    doc.setFont('helvetica', 'normal').setFontSize(11);
-    doc.text('Religious Organization', logo ? 106 : 40, 70);
-    doc.setLineWidth(0.5).line(40, 92, pageWidth - 40, 92);
-    doc.setFont('helvetica', 'bold').setFontSize(13);
-    doc.text(`${venueName}  ·  ${monthTitle(month).toUpperCase()}`, pageWidth / 2, 114, {
-      align: 'center',
-    });
+  if (logo) doc.addImage(logo, 'PNG', 40, 28, 54, 54);
+  doc.setFont('helvetica', 'bold').setFontSize(18);
+  doc.text('Lipa New Hope Church Ministries International', logo ? 106 : 40, 52);
+  doc.setFont('helvetica', 'normal').setFontSize(11);
+  doc.text('Religious Organization', logo ? 106 : 40, 70);
+  doc.setLineWidth(0.5).line(40, 92, pageWidth - 40, 92);
+  doc.setFont('helvetica', 'bold').setFontSize(13);
+  doc.text(`${venueName}  ·  ${title.toUpperCase()}`, pageWidth / 2, 114, { align: 'center' });
 
-    const table = toPdfTable(columns, rows);
-    autoTable(doc, {
-      startY: 126,
-      head: [table.head],
-      body: table.body,
-      theme: 'grid',
-      margin: { left: 40, right: 40 },
-      styles: {
-        font: 'helvetica',
-        fontSize: 10,
-        halign: 'center',
-        valign: 'middle',
-        lineColor: [0, 0, 0],
-        lineWidth: 0.5,
-        textColor: 0,
-        cellPadding: 6,
-      },
-      headStyles: { fillColor: head, textColor: 0, fontStyle: 'bold' },
-      didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index > 0 && data.cell.raw === '')
-          data.cell.styles.fillColor = head;
-      },
-    });
+  // One table for every month, in date order. With several months, a labelled row starts each
+  // one; the table runs onto extra pages only when it has to, repeating its header row.
+  const body: RowInput[] = months.flatMap(({ month, rows }) => [
+    ...(months.length > 1
+      ? [
+          [
+            {
+              content: monthTitle(month).toUpperCase(),
+              colSpan: columns.length + 1,
+              styles: {
+                fontStyle: 'bold' as const,
+                fillColor: [240, 240, 240] as [number, number, number],
+              },
+            },
+          ],
+        ]
+      : []),
+    ...toPdfTable(columns, rows).body,
+  ]);
 
-    if (note) {
-      const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
-      doc.setFont('helvetica', 'bolditalic').setFontSize(11);
-      doc.text(note, pageWidth / 2, finalY + 24, { align: 'center' });
-    }
+  autoTable(doc, {
+    startY: 126,
+    head: [['Date', ...columns]],
+    body,
+    theme: 'grid',
+    margin: { left: 40, right: 40 },
+    styles: {
+      font: 'helvetica',
+      fontSize: 10,
+      halign: 'center',
+      valign: 'middle',
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5,
+      textColor: 0,
+      cellPadding: 6,
+    },
+    headStyles: { fillColor: head, textColor: 0, fontStyle: 'bold' },
+    didParseCell: (data) => {
+      if (data.section === 'body' && data.column.index > 0 && data.cell.raw === '')
+        data.cell.styles.fillColor = head;
+    },
   });
+
+  if (note) {
+    const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+    doc.setFont('helvetica', 'bolditalic').setFontSize(11);
+    doc.text(note, pageWidth / 2, finalY + 24, { align: 'center' });
+  }
 
   doc.save(
     pdfFileName(
