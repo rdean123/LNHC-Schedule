@@ -67,6 +67,45 @@ export const createVolunteer: typeof Real.createVolunteer = async (input) => {
   return id;
 };
 
+export const updateVolunteer: typeof Real.updateVolunteer = async (volunteerId, input) => {
+  await delay();
+  const name = input.displayName.trim();
+  if (!name) throw new AppError('Enter the name used on the schedule, such as “Sica”.');
+  if (input.email?.trim()) {
+    const problem = validateEmail(input.email);
+    if (problem) throw new AppError(problem);
+  }
+  const v = volunteers.find((x) => x.id === volunteerId);
+  if (!v) throw new AppError('We couldn’t save the name.');
+  if (
+    v.is_active &&
+    volunteers.some(
+      (o) =>
+        o.id !== volunteerId && o.is_active && o.display_name.toLowerCase() === name.toLowerCase(),
+    )
+  ) {
+    throw new AppError(
+      'Another active volunteer already uses that name. Add a last initial to tell them apart.',
+    );
+  }
+  const email = input.email?.trim() || null;
+  if (
+    email &&
+    [...contacts.entries()].some(
+      ([id, c]) => id !== volunteerId && c.email?.toLowerCase() === email.toLowerCase(),
+    )
+  ) {
+    throw new AppError('That email address already belongs to another volunteer.');
+  }
+  v.display_name = name;
+  contacts.set(volunteerId, {
+    full_name: input.fullName?.trim() || null,
+    email,
+    phone: input.phone?.trim() || null,
+  });
+  record(`Changed a volunteer: ${name}`);
+};
+
 export const setVolunteerActive: typeof Real.setVolunteerActive = async (volunteerId, isActive) => {
   await delay(80);
   const v = volunteers.find((x) => x.id === volunteerId);

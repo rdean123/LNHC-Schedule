@@ -89,6 +89,34 @@ export async function createVolunteer(input: NewVolunteer): Promise<string> {
   return created.id;
 }
 
+/**
+ * Change a volunteer's name on the schedule and their contact details. This does not change the
+ * email they sign in with: that belongs to their account, not to this record.
+ */
+export async function updateVolunteer(volunteerId: string, input: NewVolunteer): Promise<void> {
+  const displayName = input.displayName.trim();
+  if (!displayName) throw new AppError('Enter the name used on the schedule, such as “Sica”.');
+  if (input.email?.trim()) {
+    const problem = validateEmail(input.email);
+    if (problem) throw new AppError(problem);
+  }
+
+  const supabase = getSupabase();
+  const { error: nameError } = await supabase
+    .from('volunteers')
+    .update({ display_name: displayName })
+    .eq('id', volunteerId);
+  if (nameError) throw toAppError(nameError, 'We couldn’t save the name.');
+
+  const { error } = await supabase.from('volunteer_contacts').upsert({
+    volunteer_id: volunteerId,
+    full_name: input.fullName?.trim() || null,
+    email: input.email?.trim() || null,
+    phone: input.phone?.trim() || null,
+  });
+  if (error) throw toAppError(error, 'We saved the name but couldn’t save the contact details.');
+}
+
 /** Deactivate instead of deleting, so past schedules keep their names. */
 export async function setVolunteerActive(volunteerId: string, isActive: boolean): Promise<void> {
   const { error } = await getSupabase()

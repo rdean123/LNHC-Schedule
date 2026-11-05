@@ -1,4 +1,4 @@
-import { Ban, Check, Plus, Search, Send } from 'lucide-react';
+import { Ban, Check, Pencil, Plus, Search, Send } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -20,6 +20,7 @@ import {
   listVolunteerDetails,
   setQualifications,
   setVolunteerActive,
+  updateVolunteer,
 } from '../../features/volunteers/volunteerService';
 import type { VolunteerDetails } from '../../features/volunteers/volunteerService';
 import { useAsync } from '../../hooks/useAsync';
@@ -199,6 +200,7 @@ function VolunteerPanel({
   const [chosen, setChosen] = useState<Set<string>>(() => new Set(volunteer.positionIds));
   const [saving, setSaving] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [editing, setEditing] = useState(false);
   const { role: myRole } = useSignedIn();
   const mayChangeRoles = canChangeRoles(myRole);
   const [confirm, setConfirm] = useState<'deactivate' | null>(null);
@@ -320,6 +322,10 @@ function VolunteerPanel({
               </select>
             </div>
           )}
+          <Button size="sm" onClick={() => setEditing(true)}>
+            <Pencil className="size-4" aria-hidden="true" />
+            Edit details
+          </Button>
           <Button
             size="sm"
             variant={volunteer.is_active ? 'danger' : 'secondary'}
@@ -393,6 +399,16 @@ function VolunteerPanel({
         <RecentlyServed volunteer={volunteer} positions={positions} />
       </div>
 
+      {editing && (
+        <EditVolunteerDialog
+          // Remount per volunteer so the form always starts from the saved values.
+          key={volunteer.id}
+          volunteer={volunteer}
+          open
+          onClose={() => setEditing(false)}
+          onSaved={onChanged}
+        />
+      )}
       <Dialog
         open={confirm === 'deactivate'}
         alert
@@ -564,6 +580,106 @@ function RecentlyServed({
         </ul>
       )}
     </section>
+  );
+}
+
+function EditVolunteerDialog({
+  volunteer,
+  open,
+  onClose,
+  onSaved,
+}: {
+  volunteer: VolunteerDetails;
+  open: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const toast = useToast();
+  const [displayName, setDisplayName] = useState(volunteer.display_name);
+  const [fullName, setFullName] = useState(volunteer.fullName ?? '');
+  const [email, setEmail] = useState(volunteer.email ?? '');
+  const [phone, setPhone] = useState(volunteer.phone ?? '');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await updateVolunteer(volunteer.id, { displayName, fullName, email, phone });
+      toast.success(`Saved ${displayName.trim()}’s details.`);
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'We couldn’t save those details.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={`Edit ${volunteer.display_name}`}
+      description={
+        volunteer.user_id
+          ? 'This changes the details on file. The email they sign in with belongs to their account and stays the same.'
+          : 'Change the name on the schedule or their contact details.'
+      }
+    >
+      <form onSubmit={(e) => void submit(e)} noValidate>
+        <Field label="Name on the schedule" error={error}>
+          {(c) => (
+            <TextInput
+              {...c}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              maxLength={40}
+              autoFocus
+            />
+          )}
+        </Field>
+        <Field label="Full name (optional)">
+          {(c) => (
+            <TextInput
+              {...c}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              maxLength={80}
+            />
+          )}
+        </Field>
+        <Field label="Email (optional)" hint="Needed to send an invitation.">
+          {(c) => (
+            <TextInput
+              {...c}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          )}
+        </Field>
+        <Field label="Phone (optional)">
+          {(c) => (
+            <TextInput
+              {...c}
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              maxLength={30}
+            />
+          )}
+        </Field>
+        <div className="mt-2 flex flex-wrap justify-end gap-3">
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="submit" variant="primary" busy={busy}>
+            Save
+          </Button>
+        </div>
+      </form>
+    </Dialog>
   );
 }
 
